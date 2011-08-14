@@ -30,13 +30,21 @@ own JavaScript files.
     Time moves no faster than ``max_timestep`` ms.
 
 * ``Game.Engine``
+    Much of the glue lives here.
+
 * ``Game.Entity``
 * ``Game.Input``
+    Manage key bindings in one place, with the ability to globally turn event
+    listening on or off and create one-time bindings.
+
 * ``Game.Renderer``
     Bind to a ``camera`` Camera object and create ``num_layers`` Canvas layers
     inside the camera container.
 
 * ``Game.StateMachine``
+    Define and traverse the flow of the game experience from navigation menus
+    to levels or whatever else.
+
 * ``Game.State``
 * ``Game.Timer``
     Relative to the global ``Static.Time`` state.
