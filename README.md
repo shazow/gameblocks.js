@@ -59,13 +59,13 @@ t.stop();
 
 ## Contributing
 
-* *Bug fixes and improvements*: Please open an issue and make a pull request if
+** **Bug fixes and improvements**: Please open an issue and make a pull request if
   if you have a fix.
-* *Examples*: If you wrote a game using this project, message me or open an
+** **Examples**: If you wrote a game using this project, message me or open an
   an issue and I'll toss a mention of it in the documentation.
-* *Tutorials*: There's a severe lack of documentation because the codebase was
+** **Tutorials**: There's a severe lack of documentation because the codebase was
   extracted from another proprietary project. Any effort is very appreciated.
-* *Forking*: Please do. :)
+** **Forking**: Please do. :)
 
 ## License
 
