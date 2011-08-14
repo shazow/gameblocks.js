@@ -38,9 +38,9 @@ own JavaScript files.
     Relative to the global ``Static.Time`` state.
 
     ```javascript
-          var t = Game.Timer();
-          t.start();
-          t.stop();
+var t = Game.Timer();
+t.start();
+t.stop();
     ```
 
 
