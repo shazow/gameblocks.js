@@ -2,6 +2,10 @@
 
 This codebase is extracted from [LineRage](https://chrome.google.com/webstore/detail/oplmlhhgdcliikihbehklkagmeophnlh), a fast-paced Tron-like arcade-style JavaScript game.
 
+It's not a complete working game out of the box, you'll need to implement a lot
+of your own logic between the glue. There are more complete frameworks out there
+but this one has some interesting optimizations that could be reused.
+
 
 ## Organization & Philosophy
 
