@@ -4,7 +4,7 @@
 
     var Time = {
         update: function() {
-            now += new Date();
+            now = +new Date();
         },
         get: function() {
             return now;
