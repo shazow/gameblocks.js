@@ -1,7 +1,13 @@
 (function() {
+    /*
+     * Turns out that calling ``new Date()`` many times per frame is noticeably
+     * slow, so having a global clock that you can refer to many times per
+     * update is an effective performance optimization.
+     */
 
     var now = +new Date();
 
+    // The current time that we update on-demand, for performance reasons.
     var Time = {
         update: function() {
             now = +new Date();
