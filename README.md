@@ -51,6 +51,12 @@ t.stop();
 * ``Static.StateMachine``
 * ``Static.Time``
 
+# TODO
+
+* Build script
+* Examples
+* Tests
+
 # License
 
 This project is released under the MIT license unless otherwise stated (such as
