@@ -35,8 +35,8 @@ if [ ! -f "closure/compiler.jar" ]; then
     fetch_compiler "$COMPILER_PATH"
 fi
 
-targets="$(add_prefix --js src/*.js)"
-targets="$targets $(add_prefix --externs externs/*.js)"
+targets="$(add_prefix --js externs/*.js)"
+targets="$targets $(add_prefix --js src/*.js)"
 
 echo -n "Compiling... "
 $COMPILER_CMD $OUTPUT_FLAG $EXTRA_FLAGS $targets || fail "Could not compile."

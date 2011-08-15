@@ -12,7 +12,6 @@
    *
    * @param  {hash} props
    * @return {function}
-   * @api public
    */
 
   Class = function(props){
@@ -46,7 +45,6 @@
    *
    * @param  {hash} props
    * @return {function}
-   * @api public
    */
 
   Class.extend = function(props) {
