@@ -20,7 +20,7 @@
                 this.layers.push(layer.getContext('2d'));
                 this.container.appendChild(layer);
             }
-        },
+        }
     });
 
 })();

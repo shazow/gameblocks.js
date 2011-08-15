@@ -27,8 +27,7 @@
         init: function() {
             this.time_created = now;
             this.time_ticked = now;
-        }
-
+        },
         tick: function() {
             var delta = now - this.time_ticked;
             this.time_ticked = now;
@@ -54,7 +53,7 @@
             this.time_ticked = now;
             this.num_ticks++;
             return delta;
-        }
+        },
         delta: function() {
             return this.now - this.time_ticked;
         }
@@ -66,8 +65,7 @@
 
         init: function(clock) {
             this.clock = clock;
-        }
-
+        },
         start: function() {
             this.time_started = this.clock.time_ticked;
         },
