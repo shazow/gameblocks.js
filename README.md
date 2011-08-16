@@ -13,7 +13,7 @@ Much of the code is written with performance optimization in mind to support a
 fast-paced game environment.
 
 Each major component is maintained within its own closure that binds to a
-global ``Game`` or ``Static`` variable. Generally they're separated into their
+global ``Game`` variable. Generally they're separated into their
 own JavaScript files.
 
 
@@ -25,9 +25,11 @@ own JavaScript files.
     Create a viewport Div inside ``container`` of size ``width``x``height``
     pixels.
 
+* ``Game.Time``
+    Static object for maintaining a cached value of time.
 * ``Game.Clock``
 * ``Game.ClockThrottled``
-    Time moves no faster than ``max_timestep`` ms.
+    Clock that moves no faster than ``max_timestep`` ms.
 
 * ``Game.Engine``
     Much of the glue lives here.
@@ -54,14 +56,6 @@ var t = Game.Timer();
 t.start();
 t.stop();
     ```
-
-
-### Static Objects
-
-* ``Static.Engine``
-* ``Static.Input``
-* ``Static.StateMachine``
-* ``Static.Time``
 
 ## TODO
 
