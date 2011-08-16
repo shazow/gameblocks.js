@@ -17,7 +17,7 @@
         }
     }
 
-    Static.Time = Time;
+    Game.Time = Time;
 
     var Clock = Game.Clock = Class({
         num_ticks: 0,

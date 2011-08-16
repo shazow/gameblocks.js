@@ -18,10 +18,40 @@
 
 <script src="../../src/Camera.js"></script>
 <script src="../../src/Clock.js"></script>
+<script src="../../src/Engine.js"></script>
 <script src="../../src/Entity.js"></script>
 <script src="../../src/Input.js"></script>
 <script src="../../src/Renderer.js"></script>
 <script src="../../src/State.js"></script>
+
+<script type="text/javascript">
+
+    // NOTE: Still in progress.
+
+    var container = Dom.select("#container");
+    var camera = new Game.Camera(container, 640, 480);
+    var renderer = new Game.Renderer(camera, 1);
+
+    var state_machine = new Game.StateMachine();
+
+    var color_cycle = unstdlib.Cycle(['#66a', '#a6a', '#aa6']);
+    var render_world = function() {
+        var ctx = renderer.layers[0];
+        ctx.fillStyle = color_cycle();
+        ctx.fillRect(10, 10, camera.width-10, camera.height-10);
+    }
+
+    state_machine.add(
+        new Game.State('world', function() {
+            render_world();
+        })
+    );
+    state_machine.enter('world');
+
+    var engine = new Game.Engine(state_machine);
+    engine.start(2);
+
+</script>
 
 </body>
 

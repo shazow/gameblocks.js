@@ -1,6 +1,6 @@
 (function() {
 
-    var Renderer = Game.Renderer = Class({
+    var CanvasRenderer = Game.CanvasRenderer = Class({
         container: null,
         layers: [],
 
@@ -15,12 +15,21 @@
 
             var i = num_layers || 1;
 
+            // TODO: Make layers a named dict?
             while(i--) {
                 var layer = Dom.create("canvas", attrs);
                 this.layers.push(layer.getContext('2d'));
                 this.container.appendChild(layer);
             }
         }
+
+        // TODO: Register entities with renderer?
     });
+
+    // TODO: Add DomRenderer
+
+
+    // Default renderer
+    Game.Renderer = CanvasRenderer;
 
 })();

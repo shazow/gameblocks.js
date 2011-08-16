@@ -2,21 +2,28 @@
 
     var Engine = Game.Engine = Class({
         loop: null,
+        state_machine: null,
         is_running: false,
 
+        init: function(state_machine) {
+            this.state_machine = state_machine;
+        },
+
         tick_factory: function() {
-            var a = Clock.update,
-                b = Global.StateMachine.run;
+            var a = Game.Time.update,
+                b = this.state_machine.run;
 
             return function() { a(); b(); };
         },
 
-        start: function() {
+        start: function(fps) {
             if(this.is_running) return;
 
-            Clock.update();
+            var fps = fps || 30;
+
+            Game.Time.update();
             this.is_running = true;
-            this.loop = setInterval(this.tick_factory(), 1000 / 30);
+            this.loop = setInterval(this.tick_factory(), 1000 / fps);
         },
 
         stop: function() {
@@ -24,7 +31,5 @@
             this.is_running = false;
         }
     });
-
-    Static.Engine = new Engine();
 
 })();

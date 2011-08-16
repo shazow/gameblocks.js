@@ -194,8 +194,6 @@
         221: "]",
         224: "WIN_KEY"};
 
-    Input.KEY_CODES_LOOKUP = inverse_lookup(Input.KEY_CODES);
-
-    Static.Input = new Input();
+    Input.KEY_CODES_LOOKUP = unstdlib.inverse_lookup(Input.KEY_CODES);
 
 })();

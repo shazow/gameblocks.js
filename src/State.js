@@ -4,27 +4,46 @@
         states: {},
         state: null,
 
-        transition: function(state_name) {
-            var last_state = this.state;
-            var new_state = this.states[state_name];
+        init: function() {
+        },
 
-            last_state.exit(new_state);
-            new_state.entry(last_state);
+        add: function(state) {
+            this.states[state.id] = state;
+        },
+        enter: function(state_id) {
+            var last_state = this.state;
+            var new_state = this.states[state_id];
+
+            if(new_state===undefined) {
+                throw("Can't enter undefined state: " + state_id);
+            }
+
+            if(last_state) {
+                var exit = last_state.handlers['exit'];
+                exit && exit();
+            }
+
+            var entry = new_state.handlers['entry'];
+            entry && entry();
 
             this.state = new_state;
+            this.run = new_state.run;
         },
-        run: function() {
-            return this.state.run();
-        }
+        run: function() {}
     });
-    Static.StateMachine = new StateMachine();
 
     var State = Game.State = Class({
-        name: null,
+        id: null,
+        run: null,
 
-        entry: function(from_state) {},
-        exit: function(to_state) {},
-        run: function() {}
+        // TODO: Make this event-based.
+        handlers: null,
+
+        init: function(id, run) {
+            this.id = id;
+            this.run = run;
+            this.handlers = {};
+        }
     });
 
 })();

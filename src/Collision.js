@@ -1,20 +1,9 @@
+// XXX: This is leftover code that hasn't been integrated into the framework yet.
 /*
 
 There's a good amount of repetitive code in this module for the sake of execution optimization.
 
 */
-
-
-var CircleEntity = function(pos, radius) {
-    this.pos = pos;
-    this.radius = radius;
-}
-
-
-
-var BoxEntity = function(box) {
-    this.box = box;
-}
 
 
 var PositionCollider = function(size) {
