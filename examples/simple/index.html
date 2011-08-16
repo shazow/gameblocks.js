@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang=en>
+
+<head>
+    <meta charset=utf-8 />
+    <meta content="text/html; charset=utf-8" http-equiv=Content-Type />
+    <title>Simple - Example game using GameBlocks.js</title>
+</head>
+<body>
+
+<h1>Simple</h1>
+<p>Press SPACE or RIGHT ARROW to cycle through colors. ESC to stop the engine.</p>
+<div id="container"></div>
+
+<script src="../../externs/Class.js"></script>
+<script src="../../externs/unstdlib.js"></script>
+
+<script src="../../src/Dom.js"></script>
+<script src="../../src/Global.js"></script>
+
+<script src="../../src/Camera.js"></script>
+<script src="../../src/Clock.js"></script>
+<script src="../../src/Engine.js"></script>
+<script src="../../src/Entity.js"></script>
+<script src="../../src/Input.js"></script>
+<script src="../../src/Renderer.js"></script>
+<script src="../../src/State.js"></script>
+
+<script type="text/javascript">
+
+    var container = Dom.select("#container");
+    var camera = new Game.Camera(container, 300, 300);
+    var renderer = new Game.Renderer(camera, 1);
+    var state_machine = new Game.StateMachine();
+    var input = new Game.Input();
+
+    var colors = ['#66a', '#a6a', '#aa6'];
+
+    var render_world = function() {
+        var ctx = renderer.layers[0];
+        ctx.fillStyle = colors[0];
+        ctx.fillRect(10, 10, camera.width-10, camera.height-10);
+    }
+
+    state_machine.add(
+        new Game.State('world', function() {
+            render_world();
+
+            if(input.pressed['cycle']) {
+                colors.push(colors.shift());
+            }
+        })
+    );
+
+    var engine = new Game.Engine(state_machine);
+
+    input.bind({
+        'RIGHT_ARROW': 'cycle',
+        'SPACE': 'cycle',
+    });
+    input.queue('ESC', function() {
+        colors = ['#000'];
+        render_world();
+
+        engine.stop();
+    });
+
+    state_machine.enter('world');
+    engine.start();
+    input.start_listening();
+
+</script>
+
+</body>
+
+</html>
