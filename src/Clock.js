@@ -67,10 +67,10 @@
             this.clock = clock;
         },
         start: function() {
-            this.time_started = this.clock.time_ticked;
+            return this.time_started = this.clock.time_ticked;
         },
         stop: function() {
-            this.time_elapsed += this.clock.time_ticked - this.time_started;
+            return this.time_elapsed += this.clock.time_ticked - this.time_started;
         }
 
     });

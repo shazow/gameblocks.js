@@ -30,6 +30,16 @@ own JavaScript files.
 * ``Game.Clock``
 * ``Game.ClockThrottled``
     Clock that moves no faster than ``max_timestep`` ms.
+* ``Game.Timer``
+    Timer relative to a given clock.
+
+    ```javascript
+var clock = new Game.Clock();
+var timer = new Game.Timer(clock);
+timer.start();
+// Do stuff...
+var seconds_elapsed = timer.stop();
+    ```
 
 * ``Game.Engine``
     Much of the glue lives here.
@@ -48,14 +58,6 @@ own JavaScript files.
     to levels or whatever else.
 
 * ``Game.State``
-* ``Game.Timer``
-    Relative to the global ``Static.Time`` state.
-
-    ```javascript
-var t = Game.Timer();
-t.start();
-t.stop();
-    ```
 
 ## TODO
 
