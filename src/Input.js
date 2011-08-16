@@ -16,8 +16,6 @@
             var self = this;
             this._handler_keydown = function(e) { self.keydown(e); };
             this._handler_keyup = function(e) { self.keyup(e); };
-
-            this.start_listening();
         },
 
         start_listening: function() {
@@ -67,32 +65,39 @@
                 e.preventDefault();
             }
         },
-        bind: function(d) {
-            for(var k in d) {
-                this.bindings[k] = d[k];
+
+        /*
+         * @param {object} mapping    Mapping between key codes and action ids.
+         */
+        bind: function(mapping) {
+            for(var key in mapping) {
+                var key_code = _coerce_key_code(key);
+                this.bindings[key_code] = mapping[key];
             }
         },
         queue: function(key, fn) {
-            var has_binding = this.bindings[key];
+            key_code = _coerce_key_code(key);
+
+            var has_binding = this.bindings[key_code];
             if(has_binding) {
                 // Wrap fn to restore original binding.
                 var self = this;
                 fn = function() {
                     fn();
-                    self.bindings[key] = has_binding;
+                    self.bindings[key_code] = has_binding;
                 };
             }
 
             // Queue a one-time execution of fn when key is pressed.
-            var queue = this.queued[key] || [];
+            var queue = this.queued[key_code] || [];
             queue.push(fn);
 
-            this.queued[key] = queue;
+            this.queued[key_code] = queue;
         }
     });
 
     // Based on key codes from Google Closure
-    Input.KEY_CODES = {
+    var KEY_CODES = Input.KEY_CODES = {
         8: "BACKSPACE",
         9: "TAB",
         13: "ENTER",
@@ -194,6 +199,15 @@
         221: "]",
         224: "WIN_KEY"};
 
-    Input.KEY_CODES_LOOKUP = unstdlib.inverse_lookup(Input.KEY_CODES);
+    var KEY_CODES_LOOKUP = Input.KEY_CODES_LOOKUP = unstdlib.inverse_lookup(KEY_CODES);
+
+    var _coerce_key_code = function(k) {
+        if(typeof(k) == 'string') {
+            // Lookup key code
+            k = KEY_CODES_LOOKUP[k];
+        }
+        if(typeof(k) == 'number') throw("BadKeyCode");
+        return k;
+    }
 
 })();
