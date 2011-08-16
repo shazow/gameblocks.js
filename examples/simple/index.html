@@ -4,10 +4,12 @@
 <head>
     <meta charset=utf-8 />
     <meta content="text/html; charset=utf-8" http-equiv=Content-Type />
-    <title>Example RPG game using GameBlocks.js</title>
+    <title>Simple - Example game using GameBlocks.js</title>
 </head>
 <body>
 
+<h1>Simple</h1>
+<p>Press SPACE or RIGHT ARROW to cycle through colors. ESC to stop the engine.</p>
 <div id="container"></div>
 
 <script src="../../externs/Class.js"></script>
@@ -26,30 +28,46 @@
 
 <script type="text/javascript">
 
-    // NOTE: Still in progress.
-
     var container = Dom.select("#container");
-    var camera = new Game.Camera(container, 640, 480);
+    var camera = new Game.Camera(container, 300, 300);
     var renderer = new Game.Renderer(camera, 1);
-
     var state_machine = new Game.StateMachine();
+    var input = new Game.Input();
 
-    var color_cycle = unstdlib.Cycle(['#66a', '#a6a', '#aa6']);
+    var colors = ['#66a', '#a6a', '#aa6'];
+
     var render_world = function() {
         var ctx = renderer.layers[0];
-        ctx.fillStyle = color_cycle();
+        ctx.fillStyle = colors[0];
         ctx.fillRect(10, 10, camera.width-10, camera.height-10);
     }
 
     state_machine.add(
         new Game.State('world', function() {
             render_world();
+
+            if(input.pressed['cycle']) {
+                colors.push(colors.shift());
+            }
         })
     );
-    state_machine.enter('world');
 
     var engine = new Game.Engine(state_machine);
-    engine.start(2);
+
+    input.bind({
+        'RIGHT_ARROW': 'cycle',
+        'SPACE': 'cycle',
+    });
+    input.queue('ESC', function() {
+        colors = ['#000'];
+        render_world();
+
+        engine.stop();
+    });
+
+    state_machine.enter('world');
+    engine.start();
+    input.start_listening();
 
 </script>
 
