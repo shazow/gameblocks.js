@@ -60,7 +60,7 @@ t.stop();
 ## TODO
 
 * Build script
-* Examples
+* More examples
 * Tests
 
 ## Contributing
