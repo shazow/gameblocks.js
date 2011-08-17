@@ -7,6 +7,11 @@ of your own logic between the glue. There are more complete frameworks out there
 but this one has some interesting optimizations that could be reused.
 
 
+## Getting Started
+
+Have a look at the [Getting Started](docs/Getting-Started.md) document and some of the [Examples](examples/).
+
+
 ## Organization & Philosophy
 
 Much of the code is written with performance optimization in mind to support a
