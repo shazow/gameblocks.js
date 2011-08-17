@@ -8,7 +8,7 @@
 
     <style type="text/css">
         #container canvas {
-            border: 10px solid #6c906c;
+            border: 10px solid #aaa;
         }
         #container {
             padding-bottom: 1em;
@@ -42,8 +42,12 @@
     var container = Dom.select("#container");
     var camera = new Game.Camera(container, 500, 300);
     var renderer = new Game.Renderer(camera, 1);
-    var state_machine = new Game.StateMachine();
     var input = new Game.Input();
+    var state_machine = new Game.StateMachine();
+    var engine = new Game.Engine(state_machine); // This time we'll start and stop the engine inside our States
+    var clock = new Game.Clock(); // We'll use a clock to maintain motion speed regardless of frame rate
+
+    var ctx = renderer.layers[0];
 
     // Constants
     var WIDTH=50, HEIGHT=30, MAGNIFY=10;
@@ -52,13 +56,7 @@
     var world_box = [0, 0, WIDTH-1, HEIGHT-1];
 
     // Store the player data
-    var player = {
-        'pos': [15,15],
-        'direction': 'right',
-        'chain_length': 3,
-        'move_rate': 5, // Per second
-        'goal_pos': [20,20]
-    }
+    var player = {};
 
     // Chain of pos tuples defining the player's full length.
     var player_chain = [];
@@ -66,29 +64,9 @@
     // Define what our tiles will look like based on the value
     var tile_styles = {
         'blank': 'rgb(250,250,250)',
-        'goal': 'rgb(180,240,180)',
+        'goal': 'rgb(120,210,120)',
         'player': 'rgb(160,50,200)'
     };
-
-    // Helper code for rendering our world (used in our 'world' State)
-    var ctx = renderer.layers[0];
-    var render_world = function() {
-
-        // Reset the canvas
-        ctx.fillStyle = tile_styles['blank'];
-        ctx.fillRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
-
-        // Paint our goal
-        ctx.fillStyle = tile_styles['goal'];
-        ctx.fillRect(player.goal_pos[0]*MAGNIFY, player.goal_pos[1]*MAGNIFY, MAGNIFY, MAGNIFY);
-
-        // Paint our player
-        ctx.fillStyle = tile_styles['player'];
-        for(var i=0, stop=player_chain.length; i<stop; i++) {
-            var pos = player_chain[i];
-            ctx.fillRect(pos[0]*MAGNIFY, pos[1]*MAGNIFY, MAGNIFY, MAGNIFY);
-        }
-    }
 
     // Define player movement delta values for input actions
     var player_directions = {
@@ -114,16 +92,63 @@
         'UP_ARROW': 'up',
     });
 
-    var clock = new Game.Clock();
 
-    state_machine.add(
-        new Game.State('died', function() {
+    state_machine.add(new Game.State('intro', {
+        'enter': function() {
+            ctx.fillStyle = '#eee';
+            ctx.fillRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
+
+            ctx.font = "100px serif";
+            ctx.fillStyle = '#aaa';
+            ctx.fillText("SNAKE", 30, 100);
+
+            ctx.font = "bold 20px sans-serif";
+            ctx.fillStyle = '#b63d39';
+            ctx.fillText("Ready? Hit SPACE to start.", 35, 130);
+
+            input.queue('SPACE', function() {
+                state_machine.enter('play');
+            });
+        }
+    }));
+
+    state_machine.add(new Game.State('died', {
+        'enter': function() {
+            ctx.fillStyle = 'rgba(0,0,0,0.8)';
+            ctx.fillRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
+
+            ctx.font = "50px serif";
+            ctx.fillStyle = '#aaa';
+            ctx.fillText("GAME OVER", 30, 100);
+
+            ctx.font = "bold 20px sans-serif";
+            ctx.fillStyle = '#b63d39';
+            ctx.fillText("Try again?", 35, 130);
+
+
+            input.queue('SPACE', function() {
+                state_machine.enter('play');
+            });
+        }
+    }));
+
+    state_machine.add(new Game.State('play', {
+        'enter': function() {
+            player = {
+                'pos': [15,15],
+                'direction': 'right',
+                'chain_length': 3,
+                'move_rate': 5, // Per second
+                'goal_pos': [20,20]
+            }
+            player_chain = [];
+
+            engine.start();
+        },
+        'exit': function() {
             engine.stop();
-        })
-    );
-
-    state_machine.add(
-        new Game.State('play', function() {
+        },
+        'run': function() {
             // Update the player direction based on pressed keys
             // This goes first because we want to capture as many input events as possible with our FPS
             for(var action in player_directions) {
@@ -135,9 +160,6 @@
                 player.direction = action;
                 break;
             }
-
-            // Update the global absolute time so that our clock is recent
-            Game.Time.update();
 
             // Has enough time passed to move the player?
             if((clock.delta() / 1000) * player.move_rate < 1) {
@@ -203,15 +225,30 @@
             }
             player_chain.push([x, y]);
 
+
             // All stateful updates are done, time to paint the world
-            render_world();
-        })
-    );
-    state_machine.enter('play'); // Start the state machine at 'world'
 
-    var engine = new Game.Engine(state_machine);
-    engine.start();
+            // Reset the canvas
+            ctx.fillStyle = tile_styles['blank'];
+            ctx.fillRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
 
+            // Paint our goal
+            ctx.fillStyle = tile_styles['goal'];
+            ctx.fillRect(player.goal_pos[0]*MAGNIFY, player.goal_pos[1]*MAGNIFY, MAGNIFY, MAGNIFY);
+
+            // Paint our player
+            ctx.fillStyle = tile_styles['player'];
+            for(var i=0, stop=player_chain.length; i<stop; i++) {
+                var pos = player_chain[i];
+                ctx.fillRect(pos[0]*MAGNIFY, pos[1]*MAGNIFY, MAGNIFY, MAGNIFY);
+            }
+        }
+    }));
+
+
+    state_machine.enter('intro'); // Start the state machine at the intro
+
+    // Everything should be setup by now, time to start accepting customers
     input.start_listening();
 
 </script>

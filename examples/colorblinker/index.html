@@ -4,11 +4,11 @@
 <head>
     <meta charset=utf-8 />
     <meta content="text/html; charset=utf-8" http-equiv=Content-Type />
-    <title>Simple - Example game using GameBlocks.js</title>
+    <title>Colorblinker - Example game using GameBlocks.js</title>
 </head>
 <body>
 
-<h1>Simple</h1>
+<h1>Colorblinker</h1>
 <p>Press SPACE or RIGHT ARROW to cycle through colors. ESC to stop the engine.</p>
 <div id="container"></div>
 
@@ -44,15 +44,15 @@
         ctx.fillRect(10, 10, camera.width-10, camera.height-10);
     }
 
-    state_machine.add(
-        new Game.State('world', function() {
+    state_machine.add(new Game.State('world', {
+        'run': function() {
             render_world();
 
             if(input.pressed['cycle']) {
                 colors.push(colors.shift());
             }
-        })
-    );
+        }
+    }));
 
     var engine = new Game.Engine(state_machine);
 

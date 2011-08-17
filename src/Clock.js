@@ -3,6 +3,8 @@
      * Turns out that calling ``new Date()`` many times per frame is noticeably
      * slow, so having a global clock that you can refer to many times per
      * update is an effective performance optimization.
+     *
+     * Values are handled in milliseconds since epoch. 1ms = 1/1000 seconds.
      */
 
     var now = +new Date();

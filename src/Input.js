@@ -53,7 +53,7 @@
             }
 
             var queue = this.queued[e.keyCode];
-            if(queue) {
+            if(queue && queue.length > 0) {
                 queue.pop()();
             }
         },

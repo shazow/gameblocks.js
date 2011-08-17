@@ -1,10 +1,13 @@
 (function() {
 
+    var nullfn = function() {};
+
     var StateMachine = Game.StateMachine = Class({
         states: {},
         state: null,
 
         init: function() {
+            this.states = {};
         },
 
         add: function(state) {
@@ -19,30 +22,35 @@
             }
 
             if(last_state) {
-                var exit = last_state.handlers['exit'];
-                exit && exit(new_state && new_state.id);
+                var exit_handler = last_state.handlers['exit'];
+                exit_handler && exit_handler();
             }
 
-            var entry = new_state.handlers['entry'];
-            entry && entry(last_state && last_state.id);
+            if(new_state) {
+                var entry_handler = new_state.handlers['enter'];
+                entry_handler && entry_handler();
+            }
 
             this.state = new_state;
-            this.run = new_state.run;
+            this.run = new_state.handlers['run'] || nullfn;
         },
         run: function() {}
     });
 
     var State = Game.State = Class({
         id: null,
-        run: null,
+
+        handlers: {},
 
         // TODO: Make this event-based.
-        handlers: null,
 
-        init: function(id, run) {
+        /**
+         * @param {String} id       Name of the state, used by StateMachine for transitions.
+         * @param {object} handlers Dictionary containing function handlers for any of 'run', 'enter', 'exit'.
+         */
+        init: function(id, handlers) {
             this.id = id;
-            this.run = run;
-            this.handlers = {};
+            this.handlers = handlers || {};
         }
     });
 
