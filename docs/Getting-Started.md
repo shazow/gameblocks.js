@@ -65,13 +65,17 @@ var renderer = new Game.Renderer(camera, 1);
 All games have multiple states they take the player through. These could be your intro screen, the first level, the second level, the death screen, the high scores screen, and whatever else. The State Machine keeps track of all the states and which state you're currently in.
 
 ```javascript
-var intro_state = new Game.State('intro', function() {
-    // Code to render the intro screen
-    alert('Hi.');
+var intro_state = new Game.State('intro', {
+    'run': function() {
+        // Code to render the intro screen
+        alert('Hi.');
+    }
 });
-var gameover_state = new Game.State('gameover', function() {
-    // Code to render the game over screen
-    alert('Game over!');
+var gameover_state = new Game.State('gameover', {
+    'enter': function() {
+        // Code to render the game over screen
+        alert('Game over!');
+    }
 });
 
 var state_machine = new Game.StateMachine();
@@ -79,7 +83,7 @@ state_machine.add(intro_state);
 state_machine.add(gameover_state);
 ```
 
-Each state has at least an ``id`` string and a ``run()`` function which is defined in the constructor and gets called when the state is entered. Additionally, a state can have ``enter(from_state_id)`` and ``exit(to_state_id)`` function handlers which get called when the state is entered or exited, respectively.
+Each state has at an ``id`` and a dictionary of ``handlers`` which is a mapping from the handler name to a function. Valid handlers include ``run`` which gets called every tick by the Engine while it's running, ``enter`` which gets called when the State is first entered, and ``exit`` which gets called just before the State is transitioned out of.
 
 ### Input
 The Input manager keeps track of key bindings and listens to the user's key presses. Presses are tracked in a stateful manner rather than in an eventful manner. That means as part of the game loop, you'll be checking if a specific action is currently activated.
