@@ -11,9 +11,9 @@
 
         tick_factory: function() {
             var a = Game.Time.update,
-                b = this.state_machine.run;
+                b = this.state_machine;
 
-            return function() { a(); b(); };
+            return function() { a(); b.run(); };
         },
 
         start: function(fps) {
