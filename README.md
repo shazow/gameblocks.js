@@ -25,7 +25,7 @@ In ascending order of complexity:
   Get longer as you eat noms, die when you try to eat yourself or a wall.
   *(~210 lines with comments)*
 
-All the source code for these demos is available in the [Examples](https://github.com/shazow/gameblocks.js/tree/master/examples) directory.
+All the source code for these demos is available in the [Examples](https://github.com/shazow/gameblocks.js/tree/master/examples) directory. Some of the examples contain TODOs throughout, bonus points if you implement them.
 
 
 ## Organization & Philosophy

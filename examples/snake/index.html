@@ -204,7 +204,7 @@
                 // TODO: This could be done better...
                 var goal_pos = false;
                 while(!goal_pos) {
-                    var goal_pos = [Math.floor(Math.random() * (WIDTH + 1)), Math.floor(Math.random() * (HEIGHT + 1))];
+                    var goal_pos = [Math.floor(Math.random() * WIDTH), Math.floor(Math.random() * HEIGHT)];
 
                     for(var i=0, stop=player_chain.length; i<stop; i++) {
                         var pos = player_chain[i];
@@ -250,6 +250,8 @@
 
     // Everything should be setup by now, time to start accepting customers
     input.start_listening();
+
+    // TODO: Add pause
 
 </script>
 
