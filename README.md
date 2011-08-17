@@ -27,7 +27,7 @@ own JavaScript files.
 ### Classes
 
 * ``Game.Camera``
-    Create a viewport Div inside ``container`` of size ``width``x``height``
+    Create a viewport canvas inside ``container`` of size ``width``x``height``
     pixels.
 
 * ``Game.Time``
@@ -66,8 +66,9 @@ var seconds_elapsed = timer.stop();
 
 ## TODO
 
-* Build script
 * More examples
+* More documentation and tutorials
+* Finish porting collision code
 * Tests
 
 ## Contributing
