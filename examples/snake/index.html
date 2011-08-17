@@ -144,7 +144,7 @@
             }
             player_chain = [];
 
-            engine.start();
+            engine.start(60);
         },
         'exit': function() {
             engine.stop();
@@ -162,8 +162,8 @@
                 break;
             }
 
-            // Has enough time passed to move the player?
-            if((clock.delta() / 1000) * player.move_rate < 1) {
+            // Has enough time passed to move the player, or has the player changed directions?
+            if((clock.delta() / 1000) * player.move_rate < 1 && player.pending_direction == player.direction) {
                 // Since the world doesn't change unless the player moved, we skip the rest.
                 return
             }
