@@ -79,6 +79,8 @@ state_machine.add(intro_state);
 state_machine.add(gameover_state);
 ```
 
+Each state has at least an ``id`` string and a ``run()`` function which is defined in the constructor and gets called when the state is entered. Additionally, a state can have ``enter`` and ``exit`` handlers which get called when the state is entered or exited, respectively.
+
 ### Input
 The Input manager keeps track of key bindings and listens to the user's key presses. Presses are tracked in a stateful manner rather than in an eventful manner. That means as part of the game loop, you'll be checking if a specific action is currently activated.
 
