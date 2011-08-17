@@ -137,6 +137,7 @@
             player = {
                 'pos': [15,15],
                 'direction': 'right',
+                'pending_direction': 'right',
                 'chain_length': 3,
                 'move_rate': 5, // Per second
                 'goal_pos': [20,20]
@@ -157,7 +158,7 @@
                 // Is the direction valid? No recursive snaking.
                 if(inverse_directions[player.direction] == action) continue;
 
-                player.direction = action;
+                player.pending_direction = action;
                 break;
             }
 
@@ -169,6 +170,9 @@
 
             // Reset the delta tracker
             clock.tick();
+
+            // We defer setting the direction until after the tick is complete so that we don't reverse on ourselves between ticks.
+            player.direction = player.pending_direction;
 
             var x = player.pos[0], y = player.pos[1];
 
@@ -195,8 +199,8 @@
 
             // Hit goal?
             if(player.goal_pos[0] == x && player.goal_pos[1] == y) {
-                player.chain_length += 1;
-                player.move_rate *= 1.1;
+                player.chain_length = Math.max(1, player.chain_length*1.2);
+                player.move_rate *= 1.05;
 
                 // Move the new goal to a random position
 
@@ -252,6 +256,7 @@
     input.start_listening();
 
     // TODO: Add pause
+    // TODO: Add acceleration when pushing in the same direction as already moving
 
 </script>
 
