@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang=en>
+
+<head>
+    <meta charset=utf-8 />
+    <meta content="text/html; charset=utf-8" http-equiv=Content-Type />
+    <title>Builder - Example game using GameBlocks.js</title>
+</head>
+<body>
+
+<h1>Builder</h1>
+<p>Use your arrow keys to move around. Press SPACE to build a wall where you are.</p>
+<div id="container"></div>
+
+<p>Built using <a href="https://github.com/shazow/gameblocks.js">gameblocks.js</a></p>
+
+<script src="../../externs/Class.js"></script>
+<script src="../../externs/unstdlib.js"></script>
+
+<script src="../../src/Dom.js"></script>
+<script src="../../src/Global.js"></script>
+
+<script src="../../src/Camera.js"></script>
+<script src="../../src/Clock.js"></script>
+<script src="../../src/Engine.js"></script>
+<script src="../../src/Entity.js"></script>
+<script src="../../src/Input.js"></script>
+<script src="../../src/Renderer.js"></script>
+<script src="../../src/State.js"></script>
+
+<script type="text/javascript">
+
+    var container = Dom.select("#container");
+    var camera = new Game.Camera(container, 500, 300);
+    var renderer = new Game.Renderer(camera, 1);
+    var state_machine = new Game.StateMachine();
+    var input = new Game.Input();
+
+    // Constants
+    var WIDTH=50, HEIGHT=30, MAGNIFY=10;
+
+    // Make a 2d array grid of 0's
+    var world = unstdlib.make_grid_fast([WIDTH, HEIGHT], 0);
+
+    // Define the confines of our world to check for boundary-collision
+    var world_box = [0, 0, WIDTH-1, HEIGHT-1];
+
+    // Store the player position
+    var player_pos = [15,15];
+
+    // Define what our tiles will look like based on the value
+    // TODO: Use image tiles instead of filled colors
+    var tile_styles = {
+        0: 'rgb(250,250,250)', // Blank
+        1: 'rgb(180,240,180)', // Wall
+        2: 'rgb(160,50,200)' // Player
+    };
+
+    // Helper code for rendering our world (used in our 'world' State)
+    var ctx = renderer.layers[0];
+    var render_world = function() {
+        var last_val = 0;
+        ctx.fillStyle = tile_styles[last_val];
+
+        // Traverse the visible world and re-paint it onto our canvas context.
+        unstdlib.iter_box([0, 0, WIDTH, HEIGHT], function(pos) {
+            var x = pos[0], y = pos[1];
+            var val = world[x][y];
+
+            // Should we paint the player here instead of the world texture?
+            if(player_pos[0] == x && player_pos[1] == y) {
+                val = 2;
+            }
+
+            // Changing fillStyle is slow, do it less often.
+            if(val!=last_val) {
+                last_val = val;
+                ctx.fillStyle = tile_styles[last_val];
+            }
+
+            ctx.fillRect(x*MAGNIFY, y*MAGNIFY, MAGNIFY, MAGNIFY);
+        });
+    }
+
+    // Define player movement delta values for input actions
+    var player_motions = {
+        'right': [1, 0],
+        'left': [-1, 0],
+        'down': [0, 1], // Our grid is upside-down for convenience
+        'up': [0, -1]
+    }
+
+    // Bind input keys to actions
+    input.bind({
+        'RIGHT_ARROW': 'right',
+        'LEFT_ARROW': 'left',
+        'DOWN_ARROW': 'down',
+        'UP_ARROW': 'up',
+        'SPACE': 'build',
+    });
+
+
+    // Helper function to check for collision (used in our 'world' State)
+    var is_collision = function(pos) {
+        return world[pos[0]][pos[1]] != 0;
+    }
+
+    state_machine.add(
+        new Game.State('world', function() {
+            render_world();
+
+            var x = player_pos[0], y = player_pos[1];
+
+            if(input.pressed['build']) {
+                world[x][y] = 1; // Set current world position to 'wall'
+            }
+
+            // Move the player?
+            var has_moved = false;
+
+            // Update position delta based on pressed keys
+            for(var action in player_motions) {
+                if(!input.pressed[action]) continue;
+
+                var delta = player_motions[action];
+                x += delta[0];
+                y += delta[1];
+
+                has_moved = true;
+            }
+
+            if(!has_moved) return; // Nothing left to do.
+
+            // Is the player move valid?
+            if(unstdlib.in_boundary([x, y], world_box) && !is_collision([x, y])) {
+                // Update the player's position
+                player_pos = [x, y];
+            }
+        })
+    );
+    state_machine.enter('world'); // Start the state machine at 'world'
+
+    var engine = new Game.Engine(state_machine);
+    engine.start(20); // 20 fps feels better here than the default 30fps due to unrestricted movement speed
+
+    input.start_listening();
+
+
+    // TODO: Add panning support
+    // TODO: Restrict movement speed without limiting FPS to 20
+
+</script>
+
+</body>
+
+</html>
