@@ -9,7 +9,22 @@ but this one has some interesting optimizations that could be reused.
 
 ## Getting Started
 
-Have a look at the usage overview in ``/docs/Getting-Started.md`` and some of the sample code in ``/examples/``.
+### Demos
+
+In ascending order of complexity:
+
+* [Colorblinker](http://shazow.github.com/gameblocks.js/examples/colorblinker)
+  Silly colorblinking action. (~40 lines with comments, previously known as 'simple')
+* [Builder](http://shazow.github.com/gameblocks.js/examples/builder)
+  Really basic RPG mechanics: A fixed canvas where you move around and make collideable walls based on a bitmap. (~120 lines with comments)
+* [Snake](http://shazow.github.com/gameblocks.js/examples/snake)
+  Get longer as you eat noms, die when you try to eat yourself or a wall. (~210 lines with comments)
+
+All the source code for these demos is available in the [Examples](https://github.com/shazow/gameblocks.js/tree/master/examples) directory.
+
+### Annotated Overview
+
+[docs/Getting-Started.md](https://github.com/shazow/gameblocks.js/tree/master/docs/Getting-Started.md)
 
 
 ## Organization & Philosophy
