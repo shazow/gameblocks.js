@@ -2,6 +2,7 @@
 // Based on http://ejohn.org/blog/simple-javascript-inheritance/
 // which is based on implementations by Prototype / base2
 
+/** @suppress {uselessCode} */
 (function(){
 
   var global = this, initialize = true

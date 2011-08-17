@@ -30,13 +30,18 @@ COMPILER_CMD="java -jar $COMPILER_PATH"
 OUTPUT_FLAG="--js_output_file gameblocks.js"
 #EXTRA_FLAGS="--compilation_level ADVANCED_OPTIMIZATIONS"
 
-if [ ! -f "closure/compiler.jar" ]; then
+if [ ! -f "$COMPILER_PATH" ]; then
     echo "Closure compiler not found, downloading..."
     fetch_compiler "$COMPILER_PATH"
 fi
 
 targets="$(add_prefix --js externs/*.js)"
 targets="$targets $(add_prefix --js src/*.js)"
+
+# Include your code?
+if [ "$1" ]; then
+    targets="$targets $(add_prefix --js $*)"
+fi
 
 echo -n "Compiling... "
 $COMPILER_CMD $OUTPUT_FLAG $EXTRA_FLAGS $targets || fail "Could not compile."
