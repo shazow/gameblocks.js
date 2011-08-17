@@ -94,6 +94,7 @@ input.bind({
 ```
 
 You can also queue one-time callback-based key bindings, for things like pausing.
+
 ```javascript
 input.queue('ESC', function() {
     // Code to pause the game
