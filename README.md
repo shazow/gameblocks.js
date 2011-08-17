@@ -15,11 +15,15 @@ Have a look at the usage overview in ``/docs/Getting-Started.md`` and some of th
 ## Organization & Philosophy
 
 Much of the code is written with performance optimization in mind to support a
-fast-paced game environment.
+fast-paced game environment. This means there is some repetition and aesthetically
+unpleasing code.
 
 Each major component is maintained within its own closure that binds to a
 global ``Game`` variable. Generally they're separated into their
 own JavaScript files.
+
+The goal is to provide common elementary components for building various types of
+games in JavaScript.
 
 
 ## Programming Interface
