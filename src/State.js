@@ -20,11 +20,11 @@
 
             if(last_state) {
                 var exit = last_state.handlers['exit'];
-                exit && exit();
+                exit && exit(new_state && new_state.id);
             }
 
             var entry = new_state.handlers['entry'];
-            entry && entry();
+            entry && entry(last_state && last_state.id);
 
             this.state = new_state;
             this.run = new_state.run;
