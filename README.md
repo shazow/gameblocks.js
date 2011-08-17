@@ -9,7 +9,7 @@ but this one has some interesting optimizations that could be reused.
 
 ## Getting Started
 
-Have a look at the [Getting Started](docs/Getting-Started.md) document and some of the [Examples](examples/).
+Have a look at the usage overview in ``/docs/Getting-Started.md`` and some of the sample code in ``/examples/``.
 
 
 ## Organization & Philosophy
