@@ -39,6 +39,8 @@
         }
     });
 
+    var min = Math.min;
+
     var ClockThrottled = Game.ClockThrottled = Clock.extend({
         time_ticked: 0,
         now: 0,
@@ -49,7 +51,7 @@
             this.__super__();
         },
         tick: function() {
-            var delta = Math.min(this.max_timestep, this.now - this.time_ticked);
+            var delta = min(this.max_timestep, this.now - this.time_ticked);
             this.time_ticked = now;
             this.num_ticks++;
             return delta;

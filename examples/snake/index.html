@@ -56,6 +56,7 @@
         'pos': [15,15],
         'direction': 'right',
         'chain_length': 3,
+        'move_rate': 5, // Per second
         'goal_pos': [20,20]
     }
 
@@ -113,6 +114,8 @@
         'UP_ARROW': 'up',
     });
 
+    var clock = new Game.Clock();
+
     state_machine.add(
         new Game.State('died', function() {
             engine.stop();
@@ -121,11 +124,8 @@
 
     state_machine.add(
         new Game.State('play', function() {
-            render_world();
-
-            var x = player.pos[0], y = player.pos[1];
-
             // Update the player direction based on pressed keys
+            // This goes first because we want to capture as many input events as possible with our FPS
             for(var action in player_directions) {
                 if(!input.pressed[action]) continue;
 
@@ -135,6 +135,20 @@
                 player.direction = action;
                 break;
             }
+
+            // Update the global absolute time so that our clock is recent
+            Game.Time.update();
+
+            // Has enough time passed to move the player?
+            if((clock.delta() / 1000) * player.move_rate < 1) {
+                // Since the world doesn't change unless the player moved, we skip the rest.
+                return
+            }
+
+            // Reset the delta tracker
+            clock.tick();
+
+            var x = player.pos[0], y = player.pos[1];
 
             // Compute new position
             var delta = player_directions[player.direction];
@@ -149,6 +163,7 @@
             }
 
             // Hit self?
+            // TODO: Merge this traversal with the same traversal in the rendering function
             for(var i=0, stop=player_chain.length; i<stop; i++) {
                 var pos = player_chain[i];
                 if(pos[0] == x && pos[1] == y) {
@@ -159,10 +174,26 @@
             // Hit goal?
             if(player.goal_pos[0] == x && player.goal_pos[1] == y) {
                 player.chain_length += 1;
+                player.move_rate *= 1.1;
 
                 // Move the new goal to a random position
-                // TODO: Make sure this doesn't land on top of the player
-                player.goal_pos = [Math.floor(Math.random() * (WIDTH + 1)), Math.floor(Math.random() * (HEIGHT + 1))];
+
+                // Make sure this doesn't land on top of the player
+                // TODO: This could be done better...
+                var goal_pos = false;
+                while(!goal_pos) {
+                    var goal_pos = [Math.floor(Math.random() * (WIDTH + 1)), Math.floor(Math.random() * (HEIGHT + 1))];
+
+                    for(var i=0, stop=player_chain.length; i<stop; i++) {
+                        var pos = player_chain[i];
+                        if(pos[0] == x && pos[1] == y) {
+                            goal_pos = false;
+                            break;
+                        }
+                    }
+                }
+
+                player.goal_pos = goal_pos;
             }
 
             // Update player's position
@@ -171,18 +202,17 @@
                 player_chain.shift(); // Pop the tail
             }
             player_chain.push([x, y]);
+
+            // All stateful updates are done, time to paint the world
+            render_world();
         })
     );
     state_machine.enter('play'); // Start the state machine at 'world'
 
     var engine = new Game.Engine(state_machine);
-    engine.start(15);
+    engine.start();
 
     input.start_listening();
-
-
-    // TODO: Add panning support
-    // TODO: Restrict movement speed without limiting FPS to 20
 
 </script>
 
