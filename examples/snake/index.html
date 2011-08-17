@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang=en>
+
+<head>
+    <meta charset=utf-8 />
+    <meta content="text/html; charset=utf-8" http-equiv=Content-Type />
+    <title>Snake - Example game using GameBlocks.js</title>
+
+    <style type="text/css">
+        #container canvas {
+            border: 10px solid #6c906c;
+        }
+        #container {
+            padding-bottom: 1em;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Snake</h1>
+<p>Use your arrow keys to navigate towards the delicious green blocks.</p>
+<div id="container"></div>
+
+<p>Built using <a href="https://github.com/shazow/gameblocks.js">gameblocks.js</a></p>
+
+<script src="../../externs/Class.js"></script>
+<script src="../../externs/unstdlib.js"></script>
+
+<script src="../../src/Dom.js"></script>
+<script src="../../src/Global.js"></script>
+
+<script src="../../src/Camera.js"></script>
+<script src="../../src/Clock.js"></script>
+<script src="../../src/Engine.js"></script>
+<script src="../../src/Entity.js"></script>
+<script src="../../src/Input.js"></script>
+<script src="../../src/Renderer.js"></script>
+<script src="../../src/State.js"></script>
+
+<script type="text/javascript">
+
+    var container = Dom.select("#container");
+    var camera = new Game.Camera(container, 500, 300);
+    var renderer = new Game.Renderer(camera, 1);
+    var state_machine = new Game.StateMachine();
+    var input = new Game.Input();
+
+    // Constants
+    var WIDTH=50, HEIGHT=30, MAGNIFY=10;
+
+    // Define the confines of our world to check for boundary-collision
+    var world_box = [0, 0, WIDTH-1, HEIGHT-1];
+
+    // Store the player data
+    var player = {
+        'pos': [15,15],
+        'direction': 'right',
+        'chain_length': 3,
+        'goal_pos': [20,20]
+    }
+
+    // Chain of pos tuples defining the player's full length.
+    var player_chain = [];
+
+    // Define what our tiles will look like based on the value
+    var tile_styles = {
+        'blank': 'rgb(250,250,250)',
+        'goal': 'rgb(180,240,180)',
+        'player': 'rgb(160,50,200)'
+    };
+
+    // Helper code for rendering our world (used in our 'world' State)
+    var ctx = renderer.layers[0];
+    var render_world = function() {
+
+        // Reset the canvas
+        ctx.fillStyle = tile_styles['blank'];
+        ctx.fillRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
+
+        // Paint our goal
+        ctx.fillStyle = tile_styles['goal'];
+        ctx.fillRect(player.goal_pos[0]*MAGNIFY, player.goal_pos[1]*MAGNIFY, MAGNIFY, MAGNIFY);
+
+        // Paint our player
+        ctx.fillStyle = tile_styles['player'];
+        for(var i=0, stop=player_chain.length; i<stop; i++) {
+            var pos = player_chain[i];
+            ctx.fillRect(pos[0]*MAGNIFY, pos[1]*MAGNIFY, MAGNIFY, MAGNIFY);
+        }
+    }
+
+    // Define player movement delta values for input actions
+    var player_directions = {
+        'right': [1, 0],
+        'left': [-1, 0],
+        'down': [0, 1], // Our grid is upside-down for convenience
+        'up': [0, -1]
+    }
+
+    // Lookup index to decide on invalid directions quickly
+    var inverse_directions = {
+        'left': 'right',
+        'right': 'left',
+        'up': 'down',
+        'down': 'up'
+    }
+
+    // Bind input keys to actions
+    input.bind({
+        'RIGHT_ARROW': 'right',
+        'LEFT_ARROW': 'left',
+        'DOWN_ARROW': 'down',
+        'UP_ARROW': 'up',
+    });
+
+    state_machine.add(
+        new Game.State('died', function() {
+            engine.stop();
+        })
+    );
+
+    state_machine.add(
+        new Game.State('play', function() {
+            render_world();
+
+            var x = player.pos[0], y = player.pos[1];
+
+            // Update the player direction based on pressed keys
+            for(var action in player_directions) {
+                if(!input.pressed[action]) continue;
+
+                // Is the direction valid? No recursive snaking.
+                if(inverse_directions[player.direction] == action) continue;
+
+                player.direction = action;
+                break;
+            }
+
+            // Compute new position
+            var delta = player_directions[player.direction];
+            x += delta[0];
+            y += delta[1];
+
+            // Check for collisions
+
+            // Hit world boundary?
+            if(!unstdlib.in_boundary([x, y], world_box)) {
+                return state_machine.enter('died');
+            }
+
+            // Hit self?
+            for(var i=0, stop=player_chain.length; i<stop; i++) {
+                var pos = player_chain[i];
+                if(pos[0] == x && pos[1] == y) {
+                    return state_machine.enter('died');
+                }
+            }
+
+            // Hit goal?
+            if(player.goal_pos[0] == x && player.goal_pos[1] == y) {
+                player.chain_length += 1;
+
+                // Move the new goal to a random position
+                // TODO: Make sure this doesn't land on top of the player
+                player.goal_pos = [Math.floor(Math.random() * (WIDTH + 1)), Math.floor(Math.random() * (HEIGHT + 1))];
+            }
+
+            // Update player's position
+            player.pos = [x, y];
+            if(player_chain.length >= player.chain_length) {
+                player_chain.shift(); // Pop the tail
+            }
+            player_chain.push([x, y]);
+        })
+    );
+    state_machine.enter('play'); // Start the state machine at 'world'
+
+    var engine = new Game.Engine(state_machine);
+    engine.start(15);
+
+    input.start_listening();
+
+
+    // TODO: Add panning support
+    // TODO: Restrict movement speed without limiting FPS to 20
+
+</script>
+
+</body>
+
+</html>
