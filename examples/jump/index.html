@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang=en>
+
+<head>
+    <meta charset=utf-8 />
+    <meta content="text/html; charset=utf-8" http-equiv=Content-Type />
+    <title>Jump! - Example game using GameBlocks.js</title>
+
+    <style type="text/css">
+        #container canvas {
+            border: 10px solid #aaa;
+        }
+        #container {
+            padding-bottom: 1em;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Jump!</h1>
+<p>Arrow keys to move left/right. Up to jump. Don't get pushed off the screen.</p>
+<div id="container"></div>
+
+<p>Built by Michael McHugh, based on snake by shazow</p>
+<p>Using <a href="https://github.com/shazow/gameblocks.js">gameblocks.js</a> by shazow</p>
+
+<script src="../../externs/Class.js"></script>
+<script src="../../externs/unstdlib.js"></script>
+
+<script src="../../src/Dom.js"></script>
+<script src="../../src/Global.js"></script>
+
+<script src="../../src/Camera.js"></script>
+<script src="../../src/Clock.js"></script>
+<script src="../../src/Engine.js"></script>
+<script src="../../src/Entity.js"></script>
+<script src="../../src/Input.js"></script>
+<script src="../../src/Renderer.js"></script>
+<script src="../../src/State.js"></script>
+
+<script type="text/javascript">
+
+    var container = Dom.select("#container");
+    var camera = new Game.Camera(container, 500, 300);
+    var renderer = new Game.Renderer(camera, 1);
+    var input = new Game.Input();
+    var state_machine = new Game.StateMachine();
+    var engine = new Game.Engine(state_machine); // This time we'll start and stop the engine inside our States
+    var player_clock = new Game.Clock(); // We'll use a clock to maintain player motion speed regardless of frame rate
+    var map_clock = new Game.Clock(); // We'll use another clock to maintain map motion speed regardless of frame rate
+    var speed_clock = new Game.Clock(); // We'll use a final clock to maintain how quickly the map speeds up
+    
+    var ctx = renderer.layers[0];
+
+    // Constants
+    var WIDTH=50, HEIGHT=30, MAGNIFY=10;
+
+    // Define the confines of our world to check for boundary-collision
+    var world_box = [0, 0, WIDTH-1, HEIGHT-1];
+
+    // Store the player data
+    var player = {};
+
+    // Map holding the floor locations
+    var map = [];
+    
+    // Speed for how quickly the map moves over
+    var map_speed;
+
+    var map_offset;
+    var map_ticks;
+    var map_gain = 5;
+    // Define what our tiles will look like based on the value
+    var tile_styles = {
+        'blank': 'rgb(250,250,250)',
+        'solid': 'rgb(20,20,20)',
+        'player': 'rgb(160,50,200)'
+    };
+    
+    function toRads(x){ return x * Math.PI / 180; }
+    
+    function make_map()
+    {
+        map = new Array(WIDTH);
+        
+        for (var i = 0; i < WIDTH; i++) 
+        {
+        	map[i] = new Array(HEIGHT);
+        	for (var j = 0; j < HEIGHT; j++) 
+        	{
+        	    if(j==29)
+            		map[i][j] = 1;
+            	else
+            	    map[i][j] = 0;
+        	}
+        }
+        
+        for (var i=1; i<WIDTH; i++)
+        {
+            y1 = (Math.sin(toRads((i+map_offset-1)*5)) * HEIGHT/3) + (HEIGHT/2);
+            y2 = (Math.sin(toRads((i+map_offset)*5)) * HEIGHT/3) + (HEIGHT/2);
+            
+            //draw a line between the 2 points
+            unstdlib.iter_line([i-1, Math.floor(y1)], [i, Math.floor(y2)], (function(pos) { map[pos[0]][pos[1]] = 1; }));
+        }
+    }
+
+    var player_actions = [
+        'right',
+        'left',
+        'jump' ]
+
+    // Define player movement delta values
+    var player_directions = {
+        'right': [1, 0],
+        'left': [-1, 0],
+        'down': [0, 1], // Our grid is upside-down for convenience
+        'up': [0, -1]
+    }
+
+    // Bind input keys to actions
+    input.bind({
+        'RIGHT_ARROW': 'right',
+        'LEFT_ARROW': 'left',
+        'UP_ARROW': 'jump'
+    });
+
+
+    state_machine.add(new Game.State('intro', {
+        'enter': function() {
+            ctx.fillStyle = '#eee';
+            ctx.fillRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
+
+            ctx.font = "100px serif";
+            ctx.fillStyle = '#aaa';
+            ctx.fillText("RUN", 30, 100);
+
+            ctx.font = "bold 20px sans-serif";
+            ctx.fillStyle = '#b63d39';
+            ctx.fillText("Ready? Hit SPACE to start.", 35, 130);
+
+            input.queue('SPACE', function() {
+                state_machine.enter('play');
+            });
+        }
+    }));
+
+    state_machine.add(new Game.State('died', {
+        'enter': function() {
+            ctx.fillStyle = 'rgba(0,0,0,0.8)';
+            ctx.fillRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
+
+            ctx.font = "50px serif";
+            ctx.fillStyle = '#aaa';
+            ctx.fillText("GAME OVER", 30, 100);
+
+            ctx.font = "bold 20px sans-serif";
+            ctx.fillStyle = '#b63d39';
+            ctx.fillText("Try again?", 35, 130);
+
+
+            input.queue('SPACE', function() {
+                state_machine.enter('play');
+            });
+        }
+    }));
+
+    state_machine.add(new Game.State('play', {
+        'enter': function() {
+            player = {
+                'pos': [15,15],
+                'move_speed': 20, // Per second
+                'jump_speed': 0,
+                'jumping': 0
+            }
+            
+            map_offset = 0;
+            make_map();
+            map_speed = 2;
+            map_ticks = 0;
+            engine.start(60);
+        },
+        'exit': function() {
+            engine.stop();
+        },
+        'run': function() {
+            // Update the player position based on pressed keys
+            // This goes first because we want to capture as many input events as possible with our FPS
+            if(input.pressed['jump'] && player.jumping == 0)
+            {
+                player.jumping = 1;
+                player.jump_speed = 3;                    
+            }
+
+            // Has enough time passed to move the player?
+            if((player_clock.delta() / 1000) * player.move_speed >= 1) 
+            {
+                // do lateral movement before vertical, as that's what the player has control over
+                x = player.pos[0];
+                y = player.pos[1];
+                
+                if(input.pressed['left'])
+                {
+                    x += player_directions['left'][0];
+                    y += player_directions['left'][1];
+                }
+                
+                if(input.pressed['right'])
+                {
+                    x += player_directions['right'][0];
+                    y += player_directions['right'][1];
+                }
+
+                // check to see if moved into an invalid location. reset location if so                
+                if(x >= WIDTH || y>= HEIGHT || map[x][y] == 1)
+                {
+                    x = player.pos[0];
+                    y = player.pos[1];
+                }
+                
+                // if jumping, check for collisions
+                if(player.jumping == 1)
+                {
+                    if(player.jump_speed > 0)
+                    {
+                        new_x = x + player_directions['up'][0] * player.jump_speed;
+                        new_y = y + player_directions['up'][1] * player.jump_speed;
+                    }
+                    else
+                    {
+                        new_x = x + player_directions['down'][0] * -player.jump_speed;
+                        new_y = y + player_directions['down'][1] * -player.jump_speed;
+                    }
+                    
+                    //check each square between current location and new location
+                    if(y < new_y)
+                    {
+                    	for (var j = y; j <= new_y; j ++)  
+                    	{
+                    	    if(map[x][j] == 1)
+                    	    {
+                    	        new_x = x;
+                    	        new_y = j -1;
+                    	        if(player.jump_speed < 0)
+                    	            player.jumping = 0;
+                                player.jump_speed = 0;
+                    	        break;
+                    	    }
+                        }
+                    }
+                    else
+                    {
+                       	for (var j = y; j >= new_y; j --)  
+                    	{
+                    	    if(map[x][j] == 1)
+                    	    {
+                    	        new_x = x;
+                    	        new_y = j +1;
+                    	        if(player.jump_speed < 0)
+                    	            player.jumping = 0;
+                                player.jump_speed = 0;
+                    	        break;
+                    	    }
+                        }
+
+                    }
+                    x = new_x;
+                    y = new_y;
+                    
+                    //if still jumping, apply gravity
+                    if(player.jumping == 1)
+                        player.jump_speed--;  
+                }
+                else // if not jumping, check to see if we start falling
+                {
+                    if(y < HEIGHT-1)
+                    {
+                        if(map[x][y+1] == 0) // nothing under our feet, start falling
+                        {
+                            player.jumping = 1;
+                            player.jump_speed = -1;
+                        }
+                    }
+                }
+                
+                player.pos = [x, y];
+                
+                player_clock.tick();
+            }
+
+            if((map_clock.delta() / 1000) * map_speed >= 1) 
+            {
+                map_offset ++;
+                make_map();
+            
+                if(map[player.pos[0]][player.pos[1]] == 1)
+                    player.pos[0] --;
+                
+                if(player.pos[0] < 0)
+                    return state_machine.enter('died');                
+               
+                map_clock.tick();
+                
+            }
+            
+            if((speed_clock.delta() / 1000) >= map_gain)
+            {
+                map_speed = Math.min(50, map_speed * 1.5);
+                speed_clock.tick();
+            }
+
+
+            // All stateful updates are done, time to paint the world
+
+            // Reset the canvas
+            ctx.fillStyle = tile_styles['blank'];
+            ctx.fillRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
+
+            // Paint our map
+            ctx.fillStyle = tile_styles['solid'];
+            for (var i = 0; i < WIDTH; i++) 
+            {
+            	for (var j = 0; j < HEIGHT; j++) 
+            	{
+            	    if(map[i][j] == 1)
+                        ctx.fillRect(i*MAGNIFY, j*MAGNIFY, MAGNIFY, MAGNIFY);
+            	}
+            }
+
+            // Paint our player
+            ctx.fillStyle = tile_styles['player'];
+            ctx.fillRect(player.pos[0]*MAGNIFY, player.pos[1]*MAGNIFY, MAGNIFY, MAGNIFY);
+        }
+    }));
+
+
+    state_machine.enter('intro'); // Start the state machine at the intro
+
+    // Everything should be setup by now, time to start accepting customers
+    input.start_listening();
+
+    // TODO: Add pause
+    // TODO: Add acceleration when pushing in the same direction as already moving
+
+</script>
+
+</body>
+
+</html>
