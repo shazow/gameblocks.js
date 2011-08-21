@@ -49,7 +49,7 @@
     var player_clock = new Game.Clock(); // We'll use a clock to maintain player motion speed regardless of frame rate
     var map_clock = new Game.Clock(); // We'll use another clock to maintain map motion speed regardless of frame rate
     var speed_clock = new Game.Clock(); // We'll use a final clock to maintain how quickly the map speeds up
-    
+
     var ctx = renderer.layers[0];
 
     // Constants
@@ -63,7 +63,7 @@
 
     // Map holding the floor locations
     var map = [];
-    
+
     // Speed for how quickly the map moves over
     var map_speed;
 
@@ -76,30 +76,30 @@
         'solid': 'rgb(20,20,20)',
         'player': 'rgb(160,50,200)'
     };
-    
+
     function toRads(x){ return x * Math.PI / 180; }
-    
+
     function make_map()
     {
         map = new Array(WIDTH);
-        
-        for (var i = 0; i < WIDTH; i++) 
+
+        for (var i = 0; i < WIDTH; i++)
         {
-        	map[i] = new Array(HEIGHT);
-        	for (var j = 0; j < HEIGHT; j++) 
-        	{
-        	    if(j==29)
-            		map[i][j] = 1;
-            	else
-            	    map[i][j] = 0;
-        	}
+            map[i] = new Array(HEIGHT);
+            for (var j = 0; j < HEIGHT; j++)
+            {
+                if(j==29)
+                    map[i][j] = 1;
+                else
+                    map[i][j] = 0;
+            }
         }
-        
+
         for (var i=1; i<WIDTH; i++)
         {
             y1 = (Math.sin(toRads((i+map_offset-1)*5)) * HEIGHT/3) + (HEIGHT/2);
             y2 = (Math.sin(toRads((i+map_offset)*5)) * HEIGHT/3) + (HEIGHT/2);
-            
+
             //draw a line between the 2 points
             unstdlib.iter_line([i-1, Math.floor(y1)], [i, Math.floor(y2)], (function(pos) { map[pos[0]][pos[1]] = 1; }));
         }
@@ -173,7 +173,7 @@
                 'jump_speed': 0,
                 'jumping': 0
             }
-            
+
             map_offset = 0;
             make_map();
             map_speed = 2;
@@ -189,35 +189,35 @@
             if(input.pressed['jump'] && player.jumping == 0)
             {
                 player.jumping = 1;
-                player.jump_speed = 3;                    
+                player.jump_speed = 3;
             }
 
             // Has enough time passed to move the player?
-            if((player_clock.delta() / 1000) * player.move_speed >= 1) 
+            if((player_clock.delta() / 1000) * player.move_speed >= 1)
             {
                 // do lateral movement before vertical, as that's what the player has control over
                 x = player.pos[0];
                 y = player.pos[1];
-                
+
                 if(input.pressed['left'])
                 {
                     x += player_directions['left'][0];
                     y += player_directions['left'][1];
                 }
-                
+
                 if(input.pressed['right'])
                 {
                     x += player_directions['right'][0];
                     y += player_directions['right'][1];
                 }
 
-                // check to see if moved into an invalid location. reset location if so                
+                // check to see if moved into an invalid location. reset location if so
                 if(x >= WIDTH || y>= HEIGHT || map[x][y] == 1)
                 {
                     x = player.pos[0];
                     y = player.pos[1];
                 }
-                
+
                 // if jumping, check for collisions
                 if(player.jumping == 1)
                 {
@@ -231,45 +231,45 @@
                         new_x = x + player_directions['down'][0] * -player.jump_speed;
                         new_y = y + player_directions['down'][1] * -player.jump_speed;
                     }
-                    
+
                     //check each square between current location and new location
                     if(y < new_y)
                     {
-                    	for (var j = y; j <= new_y; j ++)  
-                    	{
-                    	    if(map[x][j] == 1)
-                    	    {
-                    	        new_x = x;
-                    	        new_y = j -1;
-                    	        if(player.jump_speed < 0)
-                    	            player.jumping = 0;
+                        for (var j = y; j <= new_y; j ++)
+                        {
+                            if(map[x][j] == 1)
+                            {
+                                new_x = x;
+                                new_y = j -1;
+                                if(player.jump_speed < 0)
+                                    player.jumping = 0;
                                 player.jump_speed = 0;
-                    	        break;
-                    	    }
+                                break;
+                            }
                         }
                     }
                     else
                     {
-                       	for (var j = y; j >= new_y; j --)  
-                    	{
-                    	    if(map[x][j] == 1)
-                    	    {
-                    	        new_x = x;
-                    	        new_y = j +1;
-                    	        if(player.jump_speed < 0)
-                    	            player.jumping = 0;
+                           for (var j = y; j >= new_y; j --)
+                        {
+                            if(map[x][j] == 1)
+                            {
+                                new_x = x;
+                                new_y = j +1;
+                                if(player.jump_speed < 0)
+                                    player.jumping = 0;
                                 player.jump_speed = 0;
-                    	        break;
-                    	    }
+                                break;
+                            }
                         }
 
                     }
                     x = new_x;
                     y = new_y;
-                    
+
                     //if still jumping, apply gravity
                     if(player.jumping == 1)
-                        player.jump_speed--;  
+                        player.jump_speed--;
                 }
                 else // if not jumping, check to see if we start falling
                 {
@@ -282,27 +282,27 @@
                         }
                     }
                 }
-                
+
                 player.pos = [x, y];
-                
+
                 player_clock.tick();
             }
 
-            if((map_clock.delta() / 1000) * map_speed >= 1) 
+            if((map_clock.delta() / 1000) * map_speed >= 1)
             {
                 map_offset ++;
                 make_map();
-            
+
                 if(map[player.pos[0]][player.pos[1]] == 1)
                     player.pos[0] --;
-                
+
                 if(player.pos[0] < 0)
-                    return state_machine.enter('died');                
-               
+                    return state_machine.enter('died');
+
                 map_clock.tick();
-                
+
             }
-            
+
             if((speed_clock.delta() / 1000) >= map_gain)
             {
                 map_speed = Math.min(50, map_speed * 1.5);
@@ -318,13 +318,13 @@
 
             // Paint our map
             ctx.fillStyle = tile_styles['solid'];
-            for (var i = 0; i < WIDTH; i++) 
+            for (var i = 0; i < WIDTH; i++)
             {
-            	for (var j = 0; j < HEIGHT; j++) 
-            	{
-            	    if(map[i][j] == 1)
+                for (var j = 0; j < HEIGHT; j++)
+                {
+                    if(map[i][j] == 1)
                         ctx.fillRect(i*MAGNIFY, j*MAGNIFY, MAGNIFY, MAGNIFY);
-            	}
+                }
             }
 
             // Paint our player
@@ -337,7 +337,7 @@
     state_machine.enter('intro'); // Start the state machine at the intro
 
     // Everything should be setup by now, time to start accepting customers
-    input.start_listening();
+    input.keyboard_start();
 
     // TODO: Add pause
     // TODO: Add acceleration when pushing in the same direction as already moving

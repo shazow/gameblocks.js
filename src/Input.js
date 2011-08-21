@@ -1,12 +1,15 @@
 (function() {
 
     var Input = Game.Input = Class({
-        bindings: null,
-        pressed: null,
-        queued: null,
+        bindings: {},
+        pressed: {},
+        queued: {},
 
         _handler_keydown: null,
         _handler_keyup: null,
+
+        mouse_pos: false,
+        mouse_target: false,
 
         init: function() {
             this.bindings = {};
@@ -16,31 +19,50 @@
             var self = this;
             this._handler_keydown = function(e) { self.keydown(e); };
             this._handler_keyup = function(e) { self.keyup(e); };
+            this._handler_mouse_move = function(e) { self.mouse_move(e); };
         },
 
-        start_listening: function() {
+        keyboard_start: function() {
             window.addEventListener('keydown', this._handler_keydown, false);
             window.addEventListener('keyup', this._handler_keyup, false);
         },
-        stop_listening: function() {
+        keyboard_stop: function() {
             window.removeEventListener('keydown', this._handler_keydown);
             window.removeEventListener('keyup', this._handler_keyup);
         },
-        bind_listen: function(action) {
-            this.stop_listening();
 
-            var self = this;
-            function _handle_bind(e) {
-                self.bindings[e.keyCode] = action;
+        mouse_start: function(target) {
+            target = this.mouse_target = target || window;
 
-                e.stopPropagation();
-                e.preventDefault();
+            target.addEventListener('mousedown', this._handler_keydown, false);
+            target.addEventListener('mouseup', this._handler_keyup, false);
+            target.addEventListener('mousemove', this._handler_mouse_move, false);
 
-                window.removeEventListener('keydown', _handle_bind);
+            target.addEventListener('contextmenu', function(e) {
+                // Mute context menu if we're listening for MOUSE2
+                var key = KEY_CODES.MOUSE2;
+                if(this.bindings[key] || this.queue[key]) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                }
+            }, false);
 
-                self.start_listening();
+        },
+
+        mouse_stop: function() {
+            var events = ['mousedown', 'mouseup', 'mousemove', 'contextmenu'];
+
+            for(var i=0, istop=events.length; i<istop; i++) {
+                this.mouse_target.removeEventListener(events[i]);
             }
-            window.addEventListener('keyup', _handle_bind, false);
+
+            this.mouse_target = false;
+            this.mouse_pos = false;
+        },
+
+        mouse_move: function(e) {
+            // TODO: Handle positioning relative to this.mouse_target
+            this.mouse_pos = [e.pageX, e.pageY];
         },
 
         keydown: function(e) {
@@ -83,8 +105,8 @@
                 // Wrap fn to restore original binding.
                 var self = this;
                 fn = function() {
-                    fn();
                     self.bindings[key_code] = has_binding;
+                    fn();
                 };
             }
 
@@ -98,115 +120,118 @@
 
     // Based on key codes from Google Closure
     var KEY_CODES = Input.KEY_CODES = {
-        8: "BACKSPACE",
-        9: "TAB",
-        13: "ENTER",
-        16: "SHIFT",
-        17: "CTRL",
-        18: "ALT",
-        19: "PAUSE",
-        20: "CAPS_LOCK",
-        27: "ESC",
-        32: "SPACE",
-        33: "PAGE_UP",
-        34: "PAGE_DOWN",
-        35: "END",
-        36: "HOME",
-        37: "LEFT_ARROW",
-        38: "UP_ARROW",
-        39: "RIGHT_ARROW",
-        40: "DOWN_ARROW",
-        44: "PRINT_SCREEN",
-        45: "INSERT",
-        46: "DELETE",
-        48: "0",
-        49: "1",
-        50: "2",
-        51: "3",
-        52: "4",
-        53: "5",
-        54: "6",
-        55: "7",
-        56: "8",
-        57: "9",
-        63: "?",
-        65: "A",
-        66: "B",
-        67: "C",
-        68: "D",
-        69: "E",
-        70: "F",
-        71: "G",
-        72: "H",
-        73: "I",
-        74: "J",
-        75: "K",
-        76: "L",
-        77: "M",
-        78: "N",
-        79: "O",
-        80: "P",
-        81: "Q",
-        82: "R",
-        83: "S",
-        84: "T",
-        85: "U",
-        86: "V",
-        87: "W",
-        88: "X",
-        89: "Y",
-        90: "Z",
-        91: "META",
-        93: "CONTEXT_MENU",
-        96: "NUM_0",
-        97: "NUM_1",
-        98: "NUM_2",
-        99: "NUM_3",
-        100: "NUM_4",
-        101: "NUM_5",
-        102: "NUM_6",
-        103: "NUM_7",
-        104: "NUM_8",
-        105: "NUM_9",
-        106: "NUM_*",
-        107: "NUM_+",
-        109: "NUM_-",
-        110: "NUM_PERIOD",
-        111: "NUM_DIVISION",
-        112: "F1",
-        113: "F2",
-        114: "F3",
-        115: "F4",
-        116: "F5",
-        117: "F6",
-        118: "F7",
-        119: "F8",
-        120: "F9",
-        121: "F10",
-        122: "F11",
-        123: "F12",
-        144: "NUMLOCK",
-        186: ":",
-        189: "-",
-        187: "=",
-        188: ",",
-        190: ".",
-        191: "/",
-        192: "APOSTROPHE",
-        222: "'",
-        219: "[",
-        220: "\\",
-        221: "]",
-        224: "WIN_KEY"};
+        MOUSE1: -1,
+        MOUSE2: -3,
+        BACKSPACE: 8,
+        TAB: 9,
+        ENTER: 13,
+        SHIFT: 16,
+        CTRL: 17,
+        ALT: 18,
+        PAUSE: 19,
+        CAPS_LOCK: 20,
+        ESC: 27,
+        SPACE: 32,
+        PAGE_UP: 33,
+        PAGE_DOWN: 34,
+        END: 35,
+        HOME: 36,
+        LEFT_ARROW: 37,
+        UP_ARROW: 38,
+        RIGHT_ARROW: 39,
+        DOWN_ARROW: 40,
+        PRINT_SCREEN: 44,
+        INSERT: 45,
+        DELETE: 46,
+        0: 48,
+        1: 49,
+        2: 50,
+        3: 51,
+        4: 52,
+        5: 53,
+        6: 54,
+        7: 55,
+        8: 56,
+        9: 57,
+        QUESTION_MARK: 63,
+        A: 65,
+        B: 66,
+        C: 67,
+        D: 68,
+        E: 69,
+        F: 70,
+        G: 71,
+        H: 72,
+        I: 73,
+        J: 74,
+        K: 75,
+        L: 76,
+        M: 77,
+        N: 78,
+        O: 79,
+        P: 80,
+        Q: 81,
+        R: 82,
+        S: 83,
+        T: 84,
+        U: 85,
+        V: 86,
+        W: 87,
+        X: 88,
+        Y: 89,
+        Z: 90,
+        META: 91,
+        CONTEXT_MENU: 93,
+        NUM_0: 96,
+        NUM_1: 97,
+        NUM_2: 98,
+        NUM_3: 99,
+        NUM_4: 100,
+        NUM_5: 101,
+        NUM_6: 102,
+        NUM_7: 103,
+        NUM_8: 104,
+        NUM_9: 105,
+        NUM_MULTIPLY: 106,
+        NUM_PLUS: 107,
+        NUM_MINUS: 109,
+        NUM_PERIOD: 110,
+        NUM_DIVISION: 111,
+        F1: 112,
+        F2: 113,
+        F3: 114,
+        F4: 115,
+        F5: 116,
+        F6: 117,
+        F7: 118,
+        F8: 119,
+        F9: 120,
+        F10: 121,
+        F11: 122,
+        F12: 123,
+        NUMLOCK: 144,
+        COLON: 86,                 // :
+        DASH: 89,                  // -
+        EQUALS: 87,                // =
+        COMMA: 88,                 // ,
+        PERIOD: 90,                // .
+        SLASH: 91,                 // /
+        APOSTROPHE: 192,
+        SINGLE_QUOTE: 222,         // '
+        OPEN_SQUARE_BRACKET: 219,  // [
+        BACKSLASH: 220,            // \
+        CLOSE_SQUARE_BRACKET: 221, // ]
+        WIN_KEY: 224
+    }
 
     var KEY_CODES_LOOKUP = Input.KEY_CODES_LOOKUP = unstdlib.inverse_lookup(KEY_CODES);
 
     var _coerce_key_code = function(k) {
         if(typeof(k) == 'string') {
             // Lookup key code
-            k = KEY_CODES_LOOKUP[k];
+            k = KEY_CODES[k];
         }
-        if(typeof(k) == 'number') throw("BadKeyCode");
+        if(typeof(k) != 'number') throw("BadKeyCode");
         return k;
     }
 
