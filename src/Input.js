@@ -38,10 +38,11 @@
             target.addEventListener('mouseup', this._handler_keyup, false);
             target.addEventListener('mousemove', this._handler_mouse_move, false);
 
+            // Mute context menu if we're listening for MOUSE2
+            var self = this;
+            var mute_key = KEY_CODES.MOUSE2;
             target.addEventListener('contextmenu', function(e) {
-                // Mute context menu if we're listening for MOUSE2
-                var key = KEY_CODES.MOUSE2;
-                if(this.bindings[key] || this.queue[key]) {
+                if(self.bindings[mute_key] || self.queue[mute_key]) {
                     e.stopPropagation();
                     e.preventDefault();
                 }
