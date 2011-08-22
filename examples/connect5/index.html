@@ -178,6 +178,7 @@
                 new Player('o')
             ];
             next_turn = unstdlib.Cycle(players);
+            current_player = next_turn();
 
             state_machine.enter('move');
         },
@@ -185,23 +186,21 @@
 
     state_machine.add(new Game.State('move', {
         'enter': function() {
-
-            if(current_player) current_player.container.className = "";
-
-            current_player = next_turn();
-            current_player.container.className = "current";
-
             input.queue('MOUSE1', function() {
                 state_machine.enter('process');
             });
-
         }
     }));
 
+    var skip_turn_cycle = false;
     state_machine.add(new Game.State('process', {
         'enter': function() {
             var square = get_square(input.mouse_pos);
-            if(!square || square.player) return state_machine.enter('move');
+            if(!square || square.player) {
+                // Invalid move, skip it.
+                skip_turn_cycle = true;
+                return state_machine.enter('move');
+            }
 
             var player = current_player;
             square.player = player
@@ -219,8 +218,22 @@
                 s.container.innerHTML = player.symbol.toUpperCase();
                 s.player = true;
             }
+            // If you score, you get an extra turn
+            skip_turn_cycle = false;
 
             return state_machine.enter('move');
+        },
+        'exit': function() {
+            if(skip_turn_cycle) {
+                // Still the same player's turn until next time.
+                skip_turn_cycle = false;
+                return;
+            }
+
+            if(current_player) current_player.container.className = "";
+
+            current_player = next_turn();
+            current_player.container.className = "current";
         }
     }));
     state_machine.enter('start'); // Start the state machine at the intro
@@ -229,7 +242,6 @@
     input.mouse_start(container);
 
     // TODO: Add css-based tiles.
-    // TODO: Implement rule such that scored player gets an extra move
     // TODO: Highlight last move.
 
 </script>
