@@ -9,6 +9,7 @@
         _handler_keyup: null,
 
         mouse_pos: false,
+        mouse_offset: false,
         mouse_target: false,
 
         init: function() {
@@ -33,6 +34,17 @@
 
         mouse_start: function(target) {
             target = this.mouse_target = target || window;
+
+            // Determine offset of target
+            var obj = target;
+
+            var x = obj.offsetLeft, y = obj.offsetTop;
+            while(obj = obj.offsetParent) {
+                x += obj.offsetLeft;
+                y += obj.offsetTop;
+            }
+
+            this.mouse_offset = [x, y];
 
             target.addEventListener('mousedown', this._handler_keydown, false);
             target.addEventListener('mouseup', this._handler_keyup, false);
@@ -62,8 +74,7 @@
         },
 
         _mouse_move: function(e) {
-            // TODO: Handle positioning relative to this.mouse_target
-            this.mouse_pos = [e.pageX, e.pageY];
+            this.mouse_pos = [e.pageX - this.mouse_offset[0], e.pageY - this.mouse_offset[1]];
         },
 
         _keydown: function(e) {
