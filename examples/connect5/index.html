@@ -84,9 +84,9 @@
         set_player: function(player) {
             this.player = player;
             if(!player) {
-                this.container.innerText = '';
+                this.container.innerHTML = '';
             } else{ 
-                this.container.innerText = player.symbol;
+                this.container.innerHTML = player.symbol;
             }
         }
     });
@@ -104,7 +104,7 @@
         },
         set_score: function(n) {
             this.score = n;
-            this.container.innerText = "Player " + this.symbol + ": " + n;
+            this.container.innerHTML = "Player " + this.symbol + ": " + n;
         }
     });
 
@@ -205,7 +205,7 @@
 
             var player = current_player;
             square.player = player
-            square.container.innerText = player.symbol;
+            square.container.innerHTML = player.symbol;
 
             var found_line = find_line(square.pos, 5);
             if(!found_line) {
@@ -216,7 +216,7 @@
             for(var i=0, stop=found_line.length; i<stop; i++) {
                 var pos = found_line[i];
                 var s = grid[pos[0]][pos[1]];
-                s.container.innerText = player.symbol.toUpperCase();
+                s.container.innerHTML = player.symbol.toUpperCase();
                 s.player = true;
             }
 
