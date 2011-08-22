@@ -17,9 +17,9 @@
             this.queued = {};
 
             var self = this;
-            this._handler_keydown = function(e) { self.keydown(e); };
-            this._handler_keyup = function(e) { self.keyup(e); };
-            this._handler_mouse_move = function(e) { self.mouse_move(e); };
+            this._handler_keydown = function(e) { self._keydown(e); };
+            this._handler_keyup = function(e) { self._keyup(e); };
+            this._handler_mouse_move = function(e) { self._mouse_move(e); };
         },
 
         keyboard_start: function() {
@@ -61,13 +61,19 @@
             this.mouse_pos = false;
         },
 
-        mouse_move: function(e) {
+        _mouse_move: function(e) {
             // TODO: Handle positioning relative to this.mouse_target
             this.mouse_pos = [e.pageX, e.pageY];
         },
 
-        keydown: function(e) {
-            var action = this.bindings[e.keyCode];
+        _keydown: function(e) {
+            var key_code = e.keyCode;
+
+            if(e.type == 'mousedown') {
+                key_code = MOUSE_CODES[e.button];
+            }
+
+            var action = this.bindings[key_code];
             if(action) {
                 this.pressed[action] = true;
                 e.stopPropagation();
@@ -75,13 +81,19 @@
                 return;
             }
 
-            var queue = this.queued[e.keyCode];
+            var queue = this.queued[key_code];
             if(queue && queue.length > 0) {
                 queue.pop()();
             }
         },
-        keyup: function(e) {
-            var action = this.bindings[e.keyCode];
+        _keyup: function(e) {
+            var key_code = e.keyCode;
+
+            if(e.type == 'mousedown') {
+                key_code = MOUSE_CODES[e.button];
+            }
+
+            var action = this.bindings[key_code];
             if(action) {
                 this.pressed[action] = false;
                 e.stopPropagation();
@@ -122,7 +134,7 @@
     // Based on key codes from Google Closure
     var KEY_CODES = Input.KEY_CODES = {
         MOUSE1: -1,
-        MOUSE2: -3,
+        MOUSE2: -2,
         BACKSPACE: 8,
         TAB: 9,
         ENTER: 13,
@@ -223,6 +235,11 @@
         BACKSLASH: 220,            // \
         CLOSE_SQUARE_BRACKET: 221, // ]
         WIN_KEY: 224
+    }
+
+    var MOUSE_CODES = {
+        0: KEY_CODES.MOUSE1,
+        2: KEY_CODES.MOUSE2,
     }
 
     var KEY_CODES_LOOKUP = Input.KEY_CODES_LOOKUP = unstdlib.inverse_lookup(KEY_CODES);
