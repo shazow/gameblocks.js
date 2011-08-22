@@ -23,12 +23,12 @@
 
             if(last_state) {
                 var exit_handler = last_state.handlers['exit'];
-                exit_handler && exit_handler();
+                exit_handler && exit_handler(state_id);
             }
 
             if(new_state) {
                 var entry_handler = new_state.handlers['enter'];
-                entry_handler && entry_handler();
+                entry_handler && entry_handler(last_state.id);
             }
 
             this.state = new_state;
