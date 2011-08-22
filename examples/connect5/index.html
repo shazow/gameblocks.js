@@ -4,7 +4,7 @@
 <head>
     <meta charset=utf-8 />
     <meta content="text/html; charset=utf-8" http-equiv=Content-Type />
-    <title>Five in a row - Example game using GameBlocks.js</title>
+    <title>Connect 5 - Example game using GameBlocks.js</title>
 
     <style type="text/css">
         #container {
@@ -29,13 +29,18 @@
         #container > div:hover {
             background: #eee;
         }
+        #scores .current {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-<h1>Five in a row</h1>
-<p>Two players, connect (at least) five in a row.</p>
+<h1>Connect 5</h1>
+<p>Two players, connect (at least) five in a row or diagonally.</p>
 <div id="container"></div>
+<ul id="scores">
+</ul>
 
 <p>Built using <a href="https://github.com/shazow/gameblocks.js">gameblocks.js</a></p>
 
@@ -67,30 +72,43 @@
 
     var Square = Class({
         pos: [],
-        player: false,
-        container: false,
+        player: null,
+        container: null,
 
         init: function(pos) {
             this.pos = pos;
             this.player = false;
             this.container = Dom.create("div");
             container.appendChild(this.container);
+        },
+        set_player: function(player) {
+            this.player = player;
+            if(!player) {
+                this.container.innerText = '';
+            } else{ 
+                this.container.innerText = player.symbol;
+            }
         }
     });
 
-    var grid = unstdlib.make_grid([WIDTH, HEIGHT], function(pos) {
-        return new Square(pos);
+    var Player = Class({
+        symbol: '',
+        container: null,
+        score: 0,
+
+        init: function(symbol) {
+            this.symbol = symbol;
+            this.container = Dom.create("li");
+            Dom.select("#scores").appendChild(this.container);
+            this.set_score(0);
+        },
+        set_score: function(n) {
+            this.score = n;
+            this.container.innerText = "Player " + this.symbol + ": " + n;
+        }
     });
-    var grid_box = [0, 0, WIDTH-1, HEIGHT-1];
 
-    var get_square = function(pos) {
-        // ~~ is eqv to Math.floor, we -1 to account for the border
-        // The grid is stored upside-down
-        return grid[~~((pos[1]-1)/MAGNIFY)][~~((pos[0]-1)/MAGNIFY)];
-    }
-
-    var next_turn = unstdlib.Cycle(['x', 'o']);
-
+    // Given a position, find potential contiguous lines of a given length in any direction.
     var find_line = function(pos, length) {
         var player = grid[pos[0]][pos[1]].player;
         length = length || 5;
@@ -125,8 +143,53 @@
         return false;
     }
 
+    var grid = unstdlib.make_grid([WIDTH, HEIGHT], function(pos) {
+        return new Square(pos);
+    });
+
+    var grid_box = [0, 0, WIDTH-1, HEIGHT-1];
+
+    var get_square = function(pos) {
+        // ~~ is eqv to Math.floor, we -1 to account for the border
+        // The grid is stored upside-down
+        return grid[~~((pos[1]-1)/MAGNIFY)][~~((pos[0]-1)/MAGNIFY)];
+    }
+
+
+    var players = [];
+    var current_player = false;
+    var next_turn;
+
+    state_machine.add(new Game.State('start', {
+        'enter': function() {
+            // Reset the grid
+            unstdlib.iter_box(grid_box, function(pos) {
+                grid[pos[0]][pos[1]].set_player(false);
+            });
+
+            // Reset the score board
+            for(var i=0, stop=players.length; i<stop; i++) {
+                Dom.select("#scores").removeChild(players[i].container);
+            }
+
+            // Initialize players
+            players = [
+                new Player('x'),
+                new Player('o')
+            ];
+            next_turn = unstdlib.Cycle(players);
+
+            state_machine.enter('move');
+        },
+    }));
+
     state_machine.add(new Game.State('move', {
         'enter': function() {
+
+            if(current_player) current_player.container.className = "";
+
+            current_player = next_turn();
+            current_player.container.className = "current";
 
             input.queue('MOUSE1', function() {
                 state_machine.enter('process');
@@ -134,37 +197,37 @@
 
         }
     }));
+
     state_machine.add(new Game.State('process', {
         'enter': function() {
             var square = get_square(input.mouse_pos);
             if(!square || square.player) return state_machine.enter('move');
 
-            var player = next_turn();
+            var player = current_player;
             square.player = player
-            square.container.innerText = player;
+            square.container.innerText = player.symbol;
 
             var found_line = find_line(square.pos, 5);
             if(!found_line) {
                 return state_machine.enter('move');
             }
 
+            player.set_score(player.score + found_line.length);
             for(var i=0, stop=found_line.length; i<stop; i++) {
                 var pos = found_line[i];
                 var s = grid[pos[0]][pos[1]];
-                s.container.innerText = s.player.toUpperCase();
-                s.player = 'scored';
+                s.container.innerText = player.symbol.toUpperCase();
+                s.player = true;
             }
 
             return state_machine.enter('move');
         }
     }));
-    state_machine.enter('move'); // Start the state machine at the intro
+    state_machine.enter('start'); // Start the state machine at the intro
 
     // Everything should be setup by now, time to start accepting customers
     input.mouse_start(container);
 
-    // TODO: Add scores
-    // TODO: Add support for more than 2 players
     // TODO: Add css-based tiles.
 
 </script>

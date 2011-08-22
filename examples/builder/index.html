@@ -72,7 +72,7 @@
         ctx.fillStyle = tile_styles[last_val];
 
         // Traverse the visible world and re-paint it onto our canvas context.
-        unstdlib.iter_box([0, 0, WIDTH, HEIGHT], function(pos) {
+        unstdlib.iter_box(world_box, function(pos) {
             var x = pos[0], y = pos[1];
             var val = world[x][y];
 
