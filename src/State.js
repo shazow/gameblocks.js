@@ -1,3 +1,18 @@
+/**
+ * State Machine
+ *
+ * Why?
+ * Games have multiple states, each with different behaviours. For example-
+ * your intro screen, settings screen, normal levels, boss levels, death screen,
+ * high scores, etc. Each of these could have different key bindings, different
+ * rendering routines, different logic, and different entry/exit paths.
+ *
+ * The goal of a state machine is to keep track which state is active, and
+ * facilitate the transition between states.
+ *
+ * The goal of a state is to define the behaviour for a contained subset of
+ * the experience and handle transitions in to and out of it.
+ */
 (function() {
 
     var nullfn = function() {};
