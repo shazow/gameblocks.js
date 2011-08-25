@@ -86,10 +86,14 @@ var seconds_elapsed = timer.stop();
 
 ## TODO
 
+Contributions for these are especially welcome. In approximate order of priority:
+
+* Tests
+* Sprite-handling code for Entities (or independent?)
+* Finish porting collision code for Entities
 * More examples
 * More documentation and tutorials
-* Finish porting collision code
-* Tests
+* Abstract Renderer to support DOM rendering (does this make sense?)
 
 ## Contributing
 
