@@ -18,10 +18,14 @@
     var nullfn = function() {};
 
     var StateMachine = Game.StateMachine = Class({
+        queue: [],
         states: {},
-        state: null,
+        run: nullfn,
+        active_state: null,
+        in_transition: false,
 
         init: function() {
+            this.queue = [];
             this.states = {};
         },
 
@@ -29,7 +33,22 @@
             this.states[state.id] = state;
         },
         enter: function(state_id) {
-            var last_state = this.state;
+            // We use a state queue to make sure that state handlers are executed in a rational order.
+            this.queue.push(state_id);
+
+            if(this.in_transition) return;
+            this.in_transition = true;
+
+            for(;;) {
+                var state_id = this.queue.shift();
+                if(state_id===undefined) break;
+
+                this._transition(state_id);
+            }
+            this.in_transition = false;
+        },
+        _transition: function(state_id) {
+            var last_state = this.active_state;
             var new_state = this.states[state_id];
 
             if(new_state===undefined) {
@@ -43,13 +62,12 @@
 
             if(new_state) {
                 var entry_handler = new_state.handlers['enter'];
-                entry_handler && entry_handler(last_state.id);
+                entry_handler && entry_handler(last_state && last_state.id);
             }
 
-            this.state = new_state;
+            this.active_state = new_state;
             this.run = new_state.handlers['run'] || nullfn;
-        },
-        run: function() {}
+        }
     });
 
     var State = Game.State = Class({
@@ -57,7 +75,7 @@
 
         handlers: {},
 
-        // TODO: Make this event-based.
+        // TODO: Make this event-based?
 
         /**
          * @param {String} id       Name of the state, used by StateMachine for transitions.
