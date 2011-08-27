@@ -55,28 +55,41 @@
 (function() {
 
     /**
+     * A* search algorithm for path-finding.
      * Based on: http://en.wikipedia.org/wiki/A*
+     *
+     * @param {Array.<number>} start   Starting position in the form [x, y]
+     * @param {Array.<number>} goal    Ending goal position in the form [x', y']
+     * @param {Function} estimate_cost_fn  Given two positions, return an estimated distance score
+     * @param {Function} neighbors_fn  Given one position, return a list of valid neighbor positions
+     * @param {Function} distance_fn   Given two positions, return a distance score
+     * @param {Function} compare_fn    Given two positions, return 0 if equal, negative if a<b, positive if a>b
+     *
+     * @return {Array} List of positions forming a contiguous path from start to goal (exclusive).
      */
     var pathfind_astar = Game.pathfind_astar = function(start, goal, estimate_cost_fn, neighbors_fn, distance_fn, compare_fn) {
-        var closed_set = {};
+        var visited_set = {}; // aka. closed set
         var queue = [start]; // aka. open set
         var came_from = {};
 
-        var g_score = {start: 0};
-        var h_score = {start: estimate_cost_fn(start, goal)};
-        var f_score = {start: h_score[start]};
+        // Score caches
+        var g_score = {start: 0}; // Progress score
+        var h_score = {start: estimate_cost_fn(start, goal)}; // Estimated remaining distance score
+        var f_score = {start: h_score[start]}; // Estimated total path score
 
+        // Traverse candidate queue
         while(queue.length > 0) {
             var x = queue.shift();
 
             if(compare_fn(x, goal) == 0) {
                 return pathfinder_reconstruct(came_from, came_from[goal]);
             }
-            closed_set[x] = true;
+            visited_set[x] = true;
 
+            // Check neighbors for candidacy
             var neighbors = neighbors_fn(x);
             for(var i=0, istop=neighbors.length, y; i<istop, y = neighbors[i]; i++) {
-                if(closed_set[y]) continue;
+                if(visited_set[y] === true) continue; // Already visited, skip
 
                 var new_score = g_score[x] + distance_fn(x, y);
                 var new_is_better = false;
@@ -84,10 +97,12 @@
                 // In queue?
                 var in_queue = unstdlib.binary_search(queue, y, compare_fn);
                 if(in_queue < 0) {
-                    // Add y to open set.
+                    // Haven't seen this neighbour yet, add to the candidacy queue
                     queue.splice(~in_queue, 0, y);
                     new_is_better = true;
+
                 } else if(new_score < g_score[y]) {
+                    // Found a better path to a previously-queued neighbour
                     new_is_better = true;
                 }
 
@@ -108,7 +123,7 @@
     // Helper
     function pathfinder_reconstruct(came_from, current_node) {
         var n = came_from[current_node];
-        if(n===undefined) return [current_node];
+        if(n === undefined) return [current_node];
 
         var p = pathfinder_reconstruct(came_from, came_from[current_node]);
         p.push(current_node);
