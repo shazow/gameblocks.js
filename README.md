@@ -106,4 +106,4 @@ Contributions for these are especially welcome. In approximate order of priority
 ## License
 
 This project is released under the MIT license unless otherwise stated (such as
-with third-party libraries in ``extern``).
+with third-party libraries in ``externs``).
