@@ -21,7 +21,7 @@
         queue: [],
         states: {},
         run: nullfn,
-        active_state: null,
+        active_state_id: null,
         in_transition: false,
 
         init: function() {
@@ -29,9 +29,20 @@
             this.states = {};
         },
 
-        add: function(state) {
-            this.states[state.id] = state;
+        /**
+         * Register a State with the State Machine.
+         *
+         * @param {String} state_id Name of the state, used to identify which state you want to transition into.
+         * @param {object} handlers Object containing any of the following keys: run, enter, and exit.
+         */
+        add: function(state_id, handlers) {
+            this.states[state_id] = handlers;
         },
+
+        remove: function(state_id) {
+            delete this.states[state_id];
+        },
+
         enter: function(state_id) {
             // We use a state queue to make sure that state handlers are executed in a rational order.
             this.queue.push(state_id);
@@ -47,43 +58,28 @@
             }
             this.in_transition = false;
         },
+
         _transition: function(state_id) {
-            var last_state = this.active_state;
+            var last_state_id = this.active_state_id;
             var new_state = this.states[state_id];
+            var last_state = this.states[last_state_id];
 
             if(new_state===undefined) {
                 throw("Can't enter undefined state: " + state_id);
             }
 
             if(last_state) {
-                var exit_handler = last_state.handlers['exit'];
+                var exit_handler = last_state.exit;
                 exit_handler && exit_handler(state_id);
             }
 
             if(new_state) {
-                var entry_handler = new_state.handlers['enter'];
-                entry_handler && entry_handler(last_state && last_state.id);
+                var entry_handler = new_state.enter;
+                entry_handler && entry_handler(last_state_id);
             }
 
-            this.active_state = new_state;
-            this.run = new_state.handlers['run'] || nullfn;
-        }
-    });
-
-    var State = Game.State = Class({
-        id: null,
-
-        handlers: {},
-
-        // TODO: Make this event-based?
-
-        /**
-         * @param {String} id       Name of the state, used by StateMachine for transitions.
-         * @param {object} handlers Dictionary containing function handlers for any of 'run', 'enter', 'exit'.
-         */
-        init: function(id, handlers) {
-            this.id = id;
-            this.handlers = handlers || {};
+            this.active_state_id = state_id;
+            this.run = new_state['run'];
         }
     });
 

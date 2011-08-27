@@ -82,8 +82,6 @@ var seconds_elapsed = timer.stop();
     Define and traverse the flow of the game experience from navigation menus
     to levels or whatever else.
 
-* ``Game.State``
-
 ## TODO
 
 Contributions for these are especially welcome. In approximate order of priority:

@@ -160,7 +160,7 @@
     var current_player = false;
     var next_turn;
 
-    state_machine.add(new Game.State('start', {
+    state_machine.add('start', {
         'enter': function() {
             // Reset the grid
             unstdlib.iter_box(grid_box, function(pos) {
@@ -169,7 +169,7 @@
 
             // Reset the score board
             for(var i=0, stop=players.length; i<stop; i++) {
-                Dom.select("#scores").removeChild(players[i].container);
+                Dom.select('#scores').removeChild(players[i].container);
             }
 
             // Initialize players
@@ -182,18 +182,18 @@
 
             state_machine.enter('move');
         },
-    }));
+    });
 
-    state_machine.add(new Game.State('move', {
+    state_machine.add('move', {
         'enter': function() {
             input.queue('MOUSE1', function() {
                 state_machine.enter('process');
             });
         }
-    }));
+    });
 
     var skip_turn_cycle = false;
-    state_machine.add(new Game.State('process', {
+    state_machine.add('process', {
         'enter': function() {
             var square = get_square(input.mouse_pos);
             if(!square || square.player) {
@@ -235,7 +235,7 @@
             current_player = next_turn();
             current_player.container.className = "current";
         }
-    }));
+    });
     state_machine.enter('start'); // Start the state machine at the intro
 
     // Everything should be setup by now, time to start accepting customers

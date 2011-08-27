@@ -44,7 +44,7 @@
         ctx.fillRect(10, 10, camera.width-10, camera.height-10);
     }
 
-    state_machine.add(new Game.State('world', {
+    state_machine.add('world', {
         'run': function() {
             render_world();
 
@@ -52,7 +52,7 @@
                 colors.push(colors.shift());
             }
         }
-    }));
+    });
 
     var engine = new Game.Engine(state_machine);
 

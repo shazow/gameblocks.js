@@ -115,7 +115,7 @@
         return world[pos[0]][pos[1]] != 0;
     }
 
-    state_machine.add(new Game.State('world', {
+    state_machine.add('world', {
         'run': function() {
             render_world();
 
@@ -151,7 +151,7 @@
                 player_pos = [x, y];
             }
         }
-    }));
+    });
 
     state_machine.enter('world'); // Start the state machine at 'world'
 
