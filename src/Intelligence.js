@@ -79,7 +79,8 @@
 
         // Traverse candidate queue
         while(queue.length > 0) {
-            var x = queue.shift();
+            // Next candidate
+            var x = queue.shift(); // TODO: Find the next candidate with the lowest f_score value
 
             if(compare_fn(x, goal) == 0) {
                 return pathfinder_reconstruct(came_from, came_from[goal]);
