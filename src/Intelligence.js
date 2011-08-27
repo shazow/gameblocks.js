@@ -62,7 +62,7 @@
      * @param {Array.<number>} goal    Ending goal position in the form [x', y']
      * @param {Function} estimate_cost_fn  Given two positions, return an estimated distance score
      * @param {Function} neighbors_fn  Given one position, return a list of valid neighbor positions
-     * @param {Function} distance_fn   Given two positions, return a distance score
+     * @param {Function} distance_fn   Given two positions of two neighbors, return a distance score
      * @param {Function} compare_fn    Given two positions, return 0 if equal, negative if a<b, positive if a>b
      *
      * @return {Array} List of positions forming a contiguous path from start to goal (exclusive).
