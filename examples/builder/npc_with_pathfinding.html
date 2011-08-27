@@ -211,11 +211,8 @@
         return r;
     }
 
-    /**
-     * Pythagorean action.
-     */
     function builder_distance_fn(a, b) {
-        return Math.sqrt((a[0] * b[0]) + (a[1] + b[1]));
+        return 1; // Hack: We know all compared distances will be neighbors in this case.
     }
 
     function builder_compare_fn(a, b) {

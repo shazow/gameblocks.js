@@ -37,7 +37,7 @@
 //       * Pythagorean action.
 //       */
 //      function example_distance_fn(a, b) {
-//          return Math.sqrt((a[0] * b[0]) + (a[1] + b[1]));
+//          return Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2));
 //      }
 //
 //      function example_compare_fn(a, b) {
