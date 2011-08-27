@@ -191,7 +191,7 @@
      * Example cost estimating heuristic, using Manhattan Distance.
      * More here: http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
      */
-    function builder_estimate_cost_fn(b, a) {
+    function builder_estimate_cost_fn(a, b) {
         return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
     }
 

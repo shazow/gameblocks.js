@@ -63,7 +63,7 @@
      * @param {Function} estimate_cost_fn  Given two positions, return an estimated distance score
      * @param {Function} neighbors_fn  Given one position, return a list of valid neighbor positions
      * @param {Function} distance_fn   Given two positions of two neighbors, return a distance score
-     * @param {Function} compare_fn    Given two positions, return 0 if equal, negative if a<b, positive if a>b
+     * @param {Function} compare_fn    Given two positions, return 0 if equal
      *
      * @return {Array} List of positions forming a contiguous path from start to goal (exclusive).
      */
@@ -73,14 +73,22 @@
         var came_from = {};
 
         // Score caches
-        var g_score = {start: 0}; // Progress score
-        var h_score = {start: estimate_cost_fn(start, goal)}; // Estimated remaining distance score
-        var f_score = {start: h_score[start]}; // Estimated total path score
+        var g_score = {}, // Accurate progress distance
+            h_score = {}, // Estimated remaining distance
+            f_score = {}; // Estimated total path distance
+
+        g_score[start] = 0;
+        h_score[start] = f_score[start] = estimate_cost_fn(start, goal);
+
+        // Compare function used to keep our candidacy queue sorted.
+        var compare_f_scores = function(a, b) {
+            return f_score[a] - f_score[b];
+        }
 
         // Traverse candidate queue
         while(queue.length > 0) {
-            // Next candidate
-            var x = queue.shift(); // TODO: Find the next candidate with the lowest f_score value
+            // Next candidate with lowest f_score value
+            var x = queue.shift();
 
             if(compare_fn(x, goal) == 0) {
                 return pathfinder_reconstruct(came_from, came_from[goal]);
@@ -92,30 +100,22 @@
             for(var i=0, istop=neighbors.length, y; i<istop, y = neighbors[i]; i++) {
                 if(visited_set[y] === true) continue; // Already visited, skip
 
+                var add_to_queue = f_score[y] === undefined;
                 var new_score = g_score[x] + distance_fn(x, y);
-                var new_is_better = false;
+                var new_is_better = add_to_queue || new_score < g_score[y];
 
-                // In queue?
-                var in_queue = unstdlib.binary_search(queue, y, compare_fn);
-                if(in_queue < 0) {
-                    // Haven't seen this neighbour yet, add to the candidacy queue
-                    queue.splice(~in_queue, 0, y);
-                    new_is_better = true;
+                if(!new_is_better) continue; // Better alternative already known
 
-                } else if(new_score < g_score[y]) {
-                    // Found a better path to a previously-queued neighbour
-                    new_is_better = true;
-                }
+                var estimated_cost = estimate_cost_fn(y, goal);
 
-                if(new_is_better) {
-                    var estimated_cost = estimate_cost_fn(y, goal);
+                came_from[y] = x;
+                g_score[y] = new_score;
+                h_score[y] = estimated_cost;
+                f_score[y] = new_score + estimated_cost;
 
-                    came_from[y] = x;
-                    g_score[y] = new_score;
-                    h_score[y] = estimated_cost;
-                    f_score[y] = new_score + estimated_cost;
-                }
+                if(add_to_queue) unstdlib.binary_insert(queue, y, compare_f_scores);
             }
+
         }
 
         return false;
