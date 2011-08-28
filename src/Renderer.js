@@ -1,4 +1,4 @@
-Game = (function(Game) {
+var Game = (function(Game) {
 
     var CanvasRenderer = Game.CanvasRenderer = Class({
         container: null,

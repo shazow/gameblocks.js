@@ -25,9 +25,7 @@
 
 <script src="../../externs/Class.js"></script>
 <script src="../../externs/unstdlib.js"></script>
-
-<script src="../../src/Dom.js"></script>
-<script src="../../src/Global.js"></script>
+<script src="../../externs/Dom.js"></script>
 
 <script src="../../src/Camera.js"></script>
 <script src="../../src/Clock.js"></script>
@@ -93,7 +91,7 @@
     });
 
 
-    state_machine.add(new Game.State('intro', {
+    state_machine.add('intro', {
         'enter': function() {
             ctx.fillStyle = '#eee';
             ctx.fillRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
@@ -110,9 +108,9 @@
                 state_machine.enter('play');
             });
         }
-    }));
+    });
 
-    state_machine.add(new Game.State('died', {
+    state_machine.add('died', {
         'enter': function() {
             ctx.fillStyle = 'rgba(0,0,0,0.8)';
             ctx.fillRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
@@ -130,9 +128,9 @@
                 state_machine.enter('play');
             });
         }
-    }));
+    });
 
-    state_machine.add(new Game.State('play', {
+    state_machine.add('play', {
         'enter': function() {
             player = {
                 'pos': [15,15],
@@ -247,7 +245,7 @@
                 ctx.fillRect(pos[0]*MAGNIFY, pos[1]*MAGNIFY, MAGNIFY, MAGNIFY);
             }
         }
-    }));
+    });
 
 
     state_machine.enter('intro'); // Start the state machine at the intro

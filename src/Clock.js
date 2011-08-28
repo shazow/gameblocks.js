@@ -1,4 +1,4 @@
-Game = (function(Game) {
+var Game = (function(Game) {
     /*
      * Turns out that calling ``new Date()`` many times per frame is noticeably
      * slow, so having a global clock that you can refer to many times per

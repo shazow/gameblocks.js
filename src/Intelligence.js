@@ -52,7 +52,7 @@
 //      }
 //  }
 
-Game = (function(Game) {
+var Game = (function(Game) {
 
     /**
      * A* search algorithm for path-finding.

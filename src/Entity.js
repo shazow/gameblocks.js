@@ -1,4 +1,4 @@
-Game = (function(Game) {
+var Game = (function(Game) {
 
     var Entity = Game.Entity = Class({
         pos: [0, 0],

@@ -1,4 +1,4 @@
-Game = (function(Game) {
+var Game = (function(Game) {
 
     var Input = Game.Input = Class({
         bindings: {},
