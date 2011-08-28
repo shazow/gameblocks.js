@@ -1,4 +1,4 @@
-(function() {
+Game = (function(Game) {
 
     var Camera = Game.Camera = Class({
         width: 640,
@@ -28,4 +28,5 @@
         }
     });
 
-})();
+    return Game;
+})(Game || {});

@@ -13,7 +13,7 @@
  * The goal of a state is to define the behaviour for a contained subset of
  * the experience and handle transitions in to and out of it.
  */
-(function() {
+Game = (function(Game) {
 
     var nullfn = function() {};
 
@@ -83,4 +83,5 @@
         }
     });
 
-})();
+    return Game;
+})(Game || {});

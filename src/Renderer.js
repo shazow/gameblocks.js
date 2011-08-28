@@ -1,4 +1,4 @@
-(function() {
+Game = (function(Game) {
 
     var CanvasRenderer = Game.CanvasRenderer = Class({
         container: null,
@@ -32,4 +32,5 @@
     // Default renderer
     Game.Renderer = CanvasRenderer;
 
-})();
+    return Game;
+})(Game || {});

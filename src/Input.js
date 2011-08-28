@@ -1,4 +1,4 @@
-(function() {
+Game = (function(Game) {
 
     var Input = Game.Input = Class({
         bindings: {},
@@ -250,7 +250,7 @@
 
     var MOUSE_CODES = {
         0: KEY_CODES.MOUSE1,
-        2: KEY_CODES.MOUSE2,
+        2: KEY_CODES.MOUSE2
     }
 
     var KEY_CODES_LOOKUP = Input.KEY_CODES_LOOKUP = unstdlib.inverse_lookup(KEY_CODES);
@@ -264,4 +264,5 @@
         return k;
     }
 
-})();
+    return Game;
+})(Game || {});

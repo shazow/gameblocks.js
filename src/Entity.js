@@ -1,4 +1,4 @@
-(function() {
+Game = (function(Game) {
 
     var Entity = Game.Entity = Class({
         pos: [0, 0],
@@ -35,4 +35,5 @@
         }
     });
 
-})();
+    return Game;
+})(Game || {});

@@ -52,7 +52,7 @@
 //      }
 //  }
 
-(function() {
+Game = (function(Game) {
 
     /**
      * A* search algorithm for path-finding.
@@ -97,7 +97,9 @@
 
             // Check neighbors for candidacy
             var neighbors = neighbors_fn(x);
-            for(var i=0, istop=neighbors.length, y; i<istop, y = neighbors[i]; i++) {
+            for(var i=0, istop=neighbors.length; i<istop; i++) {
+                var y = neighbors[i];
+
                 if(visited_set[y] === true) continue; // Already visited, skip
 
                 var add_to_queue = f_score[y] === undefined;
@@ -131,4 +133,5 @@
         return p;
     }
 
-})();
+    return Game;
+})(Game || {});

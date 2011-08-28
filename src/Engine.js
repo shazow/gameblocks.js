@@ -1,4 +1,4 @@
-(function() {
+Game = (function(Game) {
 
     var Engine = Game.Engine = Class({
         loop: null,
@@ -32,4 +32,5 @@
         }
     });
 
-})();
+    return Game;
+})(Game || {});
