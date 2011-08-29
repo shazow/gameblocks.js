@@ -33,9 +33,14 @@
 <script src="../../src/State.js"></script>
 
 <script type="text/javascript">
+    // Constants
+    var WIDTH=30, HEIGHT=20, MAGNIFY=24;
+    var world_box = [0, 0, WIDTH-1, HEIGHT-1];
 
+
+    // Game
     var container = Dom.select("#container");
-    var camera = new Game.Camera(container, 500, 300);
+    var camera = new Game.Camera(container, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
     var renderer = new Game.Renderer(camera, 1);
     var input = new Game.Input();
     var state_machine = new Game.StateMachine();
@@ -43,10 +48,6 @@
     var clock = new Game.Clock(); // We'll use a clock to maintain motion speed regardless of frame rate
 
     var ctx = renderer.layers[0];
-
-    // Constants
-    var WIDTH=50, HEIGHT=30, MAGNIFY=10;
-    var world_box = [0, 0, WIDTH-1, HEIGHT-1];
 
 
     var sprite_images = {};
@@ -110,11 +111,10 @@
     });
 
     var SpriteAnimation = Sprite.extend({
-        // TODO: Add stop/play/rewind/skip/shuffle support
-
         frame_limiter: null,
         frame_sequence: [],
         frame_pos: 0,
+        is_playing: true,
 
         init: function(sheet, frame_limiter, frame_sequence) {
             this.sheet = sheet;
@@ -132,7 +132,7 @@
 
             var delta_frames = this.frame_limiter.tick();
 
-            if(delta_frames) {
+            if(delta_frames && this.is_playing) {
                 this.frame_pos = (this.frame_pos + delta_frames) % this.frame_sequence.length;
             }
 
@@ -140,6 +140,28 @@
             var dims = this.sheet.dims;
 
             ctx.drawImage(this.sheet.img, box[0], box[1], dims[0], dims[1], pos[0], pos[1], dims[0], dims[1]);
+        },
+
+        pause: function(frame) {
+            this.is_playing = false;
+            if(frame!==undefined) this.frame_pos = frame;
+        },
+
+        play: function(frame) {
+            this.is_playing = true;
+            if(frame!==undefined) this.frame_pos = frame;
+        },
+
+        rewind: function() {
+            this.frame_pos = 0;
+        },
+
+        skip: function(frame) {
+            this.frame_pos = frame || 0;
+        },
+
+        skip_random: function(frame) {
+            this.frame_pos = ~~(Math.random() * this.frame_sequence.length);
         }
 
     });
@@ -163,26 +185,20 @@
             'left':  new SpriteAnimation(sheet2, frame_limiter, [0, 2]),
             'up':    new SpriteAnimation(sheet2, frame_limiter, [1, 3])
         },
+        last_sprite: 'right',
 
         init: function(pos) {
             this.pos = pos || [0, 0];
         },
 
         draw: function(ctx) {
-            var sprite = this.sprites[this.direction || 'right'];
+            var sprite = this.sprites[this.direction || this.last_sprite];
             sprite.draw(ctx, [this.pos[0]*MAGNIFY, this.pos[1]*MAGNIFY]);
         },
 
         update: function() {
             // Process player actions
             var direction = player.direction;
-
-            for(var action in player.directions) {
-                if(!input.pressed[action]) continue;
-
-                direction = action;
-                break;
-            }
 
             var x = player.pos[0], y = player.pos[1];
 
@@ -198,9 +214,16 @@
             // Hit world boundary?
             if(!unstdlib.in_boundary([x, y], world_box)) {
                 // Stop and reset direction
+                this.last_sprite = direction;
                 direction = null;
                 x = player.pos[0];
                 y = player.pos[1];
+            }
+
+            if(direction==null && player.direction) {
+                this.sprites[this.last_sprite].pause(1);
+            } else if(direction) {
+                this.sprites[direction].play();
             }
 
             // Update player's position
@@ -210,7 +233,7 @@
     });
 
     var player = null;
-    var movement_limiter = new Game.FrameLimiter(10);
+    var movement_limiter = new Game.FrameLimiter(5);
 
     state_machine.add('intro', {
         'enter': function() {
@@ -232,6 +255,15 @@
             engine.stop();
         },
         'run': function() {
+            // Capture input
+            for(var action in player.directions) {
+                if(!input.pressed[action]) continue;
+
+                player.direction = action;
+                break;
+            }
+
+            // Update player?
             if(movement_limiter.tick()) {
                 player.update();
             }
