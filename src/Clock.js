@@ -91,6 +91,15 @@ var Game = (function(Game) {
             if(this.clock.delta() < this.delay) return 0; // None yet
 
             return ~~(this.clock.tick() / this.delay);
+        },
+        tick_partial: function() {
+            // Returns partial frame number, ticks over at >= 1
+
+            var delta = this.clock.delta();
+
+            if(delta >= this.delay) delta = this.clock.tick();
+
+            return delta / this.delay;
         }
     });
 

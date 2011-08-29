@@ -12,6 +12,8 @@
  *
  * The goal of a state is to define the behaviour for a contained subset of
  * the experience and handle transitions in to and out of it.
+ *
+ * FIXME: The string-based state_id is not ideal for refactored compression.
  */
 var Game = (function(Game) {
 
