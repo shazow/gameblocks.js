@@ -7,9 +7,7 @@ Gameblocks doesn't come with a dynamic dependency loader like some other framewo
 ```html
 <script src="../externs/Class.js"></script>
 <script src="../externs/unstdlib.js"></script>
-
-<script src="../src/Dom.js"></script>
-<script src="../src/Global.js"></script>
+<script src="../externs/Dom.js"></script>
 
 <script src="../src/Camera.js"></script>
 <script src="../src/Clock.js"></script>
