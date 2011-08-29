@@ -79,5 +79,20 @@ var Game = (function(Game) {
 
     });
 
+    var FrameLimiter = Game.FrameLimiter = Class({
+        init: function(frame_rate, clock) {
+            this.delay = 1000 / frame_rate;
+            this.clock = clock || new Clock();
+        },
+        tick: function() {
+            // Return how many frames elapsed
+            // FIXME: This could be optimized if made private
+
+            if(this.clock.delta() < this.delay) return 0; // None yet
+
+            return ~~(this.clock.tick() / this.delay);
+        }
+    });
+
     return Game;
 })(Game || {});

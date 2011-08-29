@@ -175,7 +175,7 @@
                 new Player('x'),
                 new Player('o')
             ];
-            next_turn = unstdlib.Cycle(players);
+            next_turn = unstdlib.cycle(players);
             current_player = next_turn();
 
             state_machine.enter('move');
