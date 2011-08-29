@@ -101,9 +101,7 @@ state_machine.add('intro', {
 
         ctx.clearRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
 
-        input.queue('SPACE', function() {
-            state_machine.enter('play');
-        });
+        state_machine.enter('play');
     }
 });
 state_machine.add('play', {
