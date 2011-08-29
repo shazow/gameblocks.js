@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang=en>
+
+<head>
+    <meta charset=utf-8 />
+    <meta content="text/html; charset=utf-8" http-equiv=Content-Type />
+    <title>Pacman - Example game using GameBlocks.js</title>
+
+    <style>
+        #container canvas {
+            background: #000;
+        }
+    </style>
+
+</head>
+<body>
+
+<h1>Pacman</h1>
+<div id="container"></div>
+
+<p>Built using <a href="https://github.com/shazow/gameblocks.js">gameblocks.js</a></p>
+
+<script src="../../externs/Class.js"></script>
+<script src="../../externs/unstdlib.js"></script>
+<script src="../../externs/Dom.js"></script>
+
+<script src="../../src/Camera.js"></script>
+<script src="../../src/Clock.js"></script>
+<script src="../../src/Engine.js"></script>
+<script src="../../src/Entity.js"></script>
+<script src="../../src/Input.js"></script>
+<script src="../../src/Renderer.js"></script>
+<script src="../../src/State.js"></script>
+
+<script type="text/javascript">
+
+    var container = Dom.select("#container");
+    var camera = new Game.Camera(container, 500, 300);
+    var renderer = new Game.Renderer(camera, 1);
+    var input = new Game.Input();
+    var state_machine = new Game.StateMachine();
+    var engine = new Game.Engine(state_machine); // This time we'll start and stop the engine inside our States
+    var clock = new Game.Clock(); // We'll use a clock to maintain motion speed regardless of frame rate
+
+    var ctx = renderer.layers[0];
+
+    // Constants
+    var WIDTH=50, HEIGHT=30, MAGNIFY=10;
+    var world_box = [0, 0, WIDTH-1, HEIGHT-1];
+
+
+    var sprite_images = {};
+    var get_sprite_image = function(src, callback) {
+        // FIXME: Add some kind of is_loading attribute and a callback queue
+        var img = sprite_images[src];
+        if(img) {
+            callback.call(img);
+            return img;
+        }
+        var img = sprite_images[src] = Dom.create("img");
+        img.onload = callback;
+        img.src = src;
+        return img;
+    }
+
+    var SpriteSheet = Class({
+        img: null,
+        dims: [16, 16],
+        box: [],
+        sprite_boxes: [],
+        num_sprites: 0,
+        init: function(src, dims, box) {
+            // TODO: Add support for offsets
+            // TODO: Add support for scaling
+
+            this.dims = dims || this.dims;
+            this.box = box;
+
+            var sprite_boxes = this.sprite_boxes = [];
+
+            var self = this;
+            this.img = get_sprite_image(src, function() {
+                if(box===undefined) {
+                    self.box = box = [0, 0, self.img.width, self.img.height];
+                }
+
+                // Populate sprite boxes
+                for(var y=box[1], ystop=box[3], yincr = dims[1]; y+yincr<=ystop; y += yincr) {
+                    for(var x=box[0], xstop=box[2], xincr = dims[0]; x+xincr<=xstop; x += xincr) {
+                        sprite_boxes.push([x, y, x+xincr, y+yincr]);
+                    }
+                }
+
+                self.num_sprites = sprite_boxes.length;
+            });
+        }
+    });
+
+    var Sprite = Class({
+        draw: null,
+
+        init: function(sheet, i) {
+            var box = sheet.sprite_boxes[this.i].box;
+            var dims = sheet.dims;
+
+            this.draw = function(ctx, pos) {
+                ctx.drawImage(sheet.img, box[0], box[1], dims[0], dims[1], pos[0], pos[1], dims[0], dims[1]);
+            }
+        }
+    });
+
+    var SpriteAnimation = Sprite.extend({
+        // TODO: Add stop/play/rewind/skip/shuffle support
+
+        frame_limiter: null,
+        frame_sequence: [],
+        frame_pos: 0,
+
+        init: function(sheet, frame_limiter, frame_sequence) {
+            this.sheet = sheet;
+
+            if(typeof(frame_limiter) == 'number') {
+                frame_limiter = new Game.FrameLimiter(frame_limiter);
+            }
+
+            this.frame_limiter = frame_limiter;
+            this.frame_sequence = frame_sequence;
+        },
+
+        draw: function(ctx, pos) {
+            // TODO: This can be optimized with better closures for attribute-access and by caching the last frame
+
+            var delta_frames = this.frame_limiter.tick();
+
+            if(delta_frames) {
+                this.frame_pos = (this.frame_pos + delta_frames) % this.frame_sequence.length;
+            }
+
+            var box = this.sheet.sprite_boxes[this.frame_sequence[this.frame_pos]];
+            var dims = this.sheet.dims;
+
+            ctx.drawImage(this.sheet.img, box[0], box[1], dims[0], dims[1], pos[0], pos[1], dims[0], dims[1]);
+        }
+
+    });
+
+    var sheet1 = new SpriteSheet("sprites.gif", [24, 24], [292, 172, 292+24*4, 172+24]);
+    var sheet2 = new SpriteSheet("sprites.gif", [24, 24], [4, 268, 4+24*4, 268+24]);
+    var frame_limiter = new Game.FrameLimiter(5);
+
+    var Player = Class({
+        directions: {
+            'right': [1, 0],
+            'left': [-1, 0],
+            'down': [0, 1], // Our grid is upside-down for convenience
+            'up': [0, -1]
+        },
+        direction: null,
+        pos: [],
+        sprites: {
+            'right': new SpriteAnimation(sheet1, frame_limiter, [0, 2]),
+            'down':  new SpriteAnimation(sheet1, frame_limiter, [1, 3]),
+            'left':  new SpriteAnimation(sheet2, frame_limiter, [0, 2]),
+            'up':    new SpriteAnimation(sheet2, frame_limiter, [1, 3])
+        },
+
+        init: function(pos) {
+            this.pos = pos || [0, 0];
+        },
+
+        draw: function(ctx) {
+            var sprite = this.sprites[this.direction || 'right'];
+            sprite.draw(ctx, [this.pos[0]*MAGNIFY, this.pos[1]*MAGNIFY]);
+        },
+
+        update: function() {
+            // Process player actions
+            var direction = player.direction;
+
+            for(var action in player.directions) {
+                if(!input.pressed[action]) continue;
+
+                direction = action;
+                break;
+            }
+
+            var x = player.pos[0], y = player.pos[1];
+
+            if(direction) {
+                // Compute new position
+                var delta = player.directions[direction];
+                x += delta[0];
+                y += delta[1];
+            }
+
+            // Check for collisions
+
+            // Hit world boundary?
+            if(!unstdlib.in_boundary([x, y], world_box)) {
+                // Stop and reset direction
+                direction = null;
+                x = player.pos[0];
+                y = player.pos[1];
+            }
+
+            // Update player's position
+            player.direction = direction;
+            player.pos = [x, y];
+        }
+    });
+
+    var player = null;
+    var movement_limiter = new Game.FrameLimiter(10);
+
+    state_machine.add('intro', {
+        'enter': function() {
+            player = new Player();
+
+            ctx.clearRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
+
+            input.queue('SPACE', function() {
+                state_machine.enter('play');
+            });
+        }
+    });
+    state_machine.add('play', {
+        'enter': function() {
+            player = new Player();
+            engine.start(30);
+        },
+        'exit': function() {
+            engine.stop();
+        },
+        'run': function() {
+            if(movement_limiter.tick()) {
+                player.update();
+            }
+
+            // Reset the canvas
+            ctx.clearRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
+
+            // Paint our player
+            player.draw(ctx);
+        }
+    });
+
+    state_machine.enter('intro'); // Start the state machine at the intro
+
+    // Bind input keys to actions
+    input.bind({
+        'RIGHT_ARROW': 'right',
+        'LEFT_ARROW': 'left',
+        'DOWN_ARROW': 'down',
+        'UP_ARROW': 'up',
+    });
+
+
+    // Everything should be setup by now, time to start accepting customers
+    input.keyboard_start();
+
+
+</script>
+
+</body>
+
+</html>
