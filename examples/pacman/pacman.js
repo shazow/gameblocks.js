@@ -1,5 +1,5 @@
 // Constants
-var WIDTH=30, HEIGHT=20, MAGNIFY=24;
+var WIDTH=30, HEIGHT=20, MAGNIFY=12;
 var world_box = [0, 0, WIDTH-1, HEIGHT-1];
 
 
@@ -14,6 +14,70 @@ var clock = new Game.Clock(); // We'll use a clock to maintain motion speed rega
 
 var ctx = renderer.layers[0];
 
+var world = (function(s, width, height) {
+    // Parse world string
+    return unstdlib.make_grid([width, height], function(pos) {
+        return s[pos[1] * width + pos[0]];
+    });
+})(
+"111111111111111111111111111111" +
+"163333333333333333333333333371" +
+"120000000000000000000000000041" +
+"120000000000000000000000000041" +
+"120000000000000000000000000041" +
+"120000000000000000000000000041" +
+"120000000a555b000a555b00000041" +
+"1200000004633c000d337200000041" +
+"120000000420000000004200000041" +
+"120000000420000000004200000041" +
+"120000000420000000004200000041" +
+"120000000420000000004200000041" +
+"1200000004855b000a559200000041" +
+"120000000d333c000d333c00000041" +
+"120000000000000000000000000041" +
+"120000000000000000000000000041" +
+"120000000000000000000000000041" +
+"120000000000000000000000000041" +
+"185555555555555555555555555591" +
+"111111111111111111111111111111", WIDTH, HEIGHT);
+
+var tile_lookup = {};
+new Game.SpriteSheet("sprites.gif", [12, 12], [196, 77, 192+12*14, 77+12], function() {
+    tile_lookup[2] = new Game.Sprite(this, 3);
+    tile_lookup[3] = new Game.Sprite(this, 11);
+    tile_lookup[4] = new Game.Sprite(this, 2);
+    tile_lookup[5] = new Game.Sprite(this, 12);
+    tile_lookup[6] = new Game.Sprite(this, 1);
+    tile_lookup[7] = new Game.Sprite(this, 0);
+    tile_lookup[8] = new Game.Sprite(this, 5);
+    tile_lookup[9] = new Game.Sprite(this, 4);
+});
+new Game.SpriteSheet("sprites.gif", [12, 12], [148, 89, 148+12*4, 89+12], function() {
+    tile_lookup['a'] = new Game.Sprite(this, 1);
+    tile_lookup['b'] = new Game.Sprite(this, 0);
+    tile_lookup['c'] = new Game.Sprite(this, 2);
+    tile_lookup['d'] = new Game.Sprite(this, 3);
+});
+
+var draw_world = function(ctx) {
+    // Reset the canvas
+    ctx.clearRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
+
+    // TODO: Cache this part, since the world doesn't change
+    ctx.fillStyle = '#aaa';
+    unstdlib.iter_box(world_box, function(pos) {
+        var val = world[pos[0]][pos[1]];
+        var tile = tile_lookup[val];
+
+        if(tile===undefined) return;
+
+        tile.draw(ctx, [pos[0] * MAGNIFY, pos[1] * MAGNIFY]);
+    });
+}
+
+var is_collision = function(pos) {
+    return world[pos[0]][pos[1]] != 0;
+}
 
 var sheet1 = new Game.SpriteSheet("sprites.gif", [24, 24], [292, 172, 292+24*4, 172+24]);
 var sheet2 = new Game.SpriteSheet("sprites.gif", [24, 24], [4, 268, 4+24*4, 268+24]);
@@ -47,10 +111,11 @@ var Player = Class({
         var sprite = this.sprites[this.direction || this.last_sprite];
 
         var steps = steps % 1;
+        var offset = 6;
 
         var pos = [
-            ~~((this.pos[0]*steps+this.last_pos[0]*(1-steps))*MAGNIFY),
-            ~~((this.pos[1]*steps+this.last_pos[1]*(1-steps))*MAGNIFY)
+            ~~((this.pos[0]*steps+this.last_pos[0]*(1-steps))*MAGNIFY-offset),
+            ~~((this.pos[1]*steps+this.last_pos[1]*(1-steps))*MAGNIFY-offset)
         ];
         sprite.draw(ctx, pos);
     },
@@ -71,13 +136,15 @@ var Player = Class({
         // Check for collisions
 
         // Hit world boundary?
-        if(!unstdlib.in_boundary([x, y], world_box)) {
+        if(!unstdlib.in_boundary([x, y], world_box) || is_collision([x, y])) {
             // Stop and reset direction
             this.last_sprite = direction;
             direction = null;
             x = player.pos[0];
             y = player.pos[1];
         }
+
+        if(world[x][y] != 0) 
 
         if(direction==null && player.direction) {
             this.sprites[this.last_sprite].pause(1);
@@ -97,8 +164,6 @@ var movement_limiter = new Game.FrameLimiter(8);
 
 state_machine.add('intro', {
     'enter': function() {
-        player = new Player();
-
         ctx.clearRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
 
         state_machine.enter('play');
@@ -106,7 +171,7 @@ state_machine.add('intro', {
 });
 state_machine.add('play', {
     'enter': function() {
-        player = new Player();
+        player = new Player([3, 3]);
         engine.start(30);
     },
 
@@ -128,8 +193,7 @@ state_machine.add('play', {
         // Update player?
         if(ticks >= 1) player.update();
 
-        // Reset the canvas
-        ctx.clearRect(0, 0, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
+        draw_world(ctx);
 
         // Paint our player
         player.draw(ctx, ticks);
