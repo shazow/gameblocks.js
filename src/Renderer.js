@@ -66,7 +66,7 @@ var Game = (function(Game) {
          * @param {Array=[16, 16]} dims Dimension of the sprites in the form [width, height]
          * @param {Array} [box] Bounding box of sprites to load within image in the form [x1, y1, x2, y2] (default to full image size).
          */
-        init: function(src, dims, box) {
+        init: function(src, dims, box, callback) {
             // TODO: Add support for offsets
             // TODO: Add support for scaling
 
@@ -89,24 +89,44 @@ var Game = (function(Game) {
                 }
 
                 self.num_sprites = sprite_boxes.length;
+
+                callback && callback.call(self);
             });
         }
     });
 
     var Sprite = Game.Sprite = Class({
-        draw: null,
+        box: [],
+        dims: [],
+        sheet: null,
 
         /**
          * @param {SpriteSheet} sheet SpriteSheet containing the sprite.
          * @param {number} i Index position of the sprite in the sprite sheet (0-indexed).
          */
         init: function(sheet, i) {
-            var box = sheet.sprite_boxes[this.i].box;
-            var dims = sheet.dims;
+            this.sheet = sheet;
+            this.box = sheet.sprite_boxes[i];
+            this.dims = sheet.dims;
+        },
+        draw: function(ctx, pos) {
+            var width = this.dims[0], height = this.dims[1];
+            ctx.drawImage(this.sheet.img, this.box[0], this.box[1], width, height, pos[0], pos[1], width, height);
+        }
+    });
 
-            this.draw = function(ctx, pos) {
-                ctx.drawImage(sheet.img, box[0], box[1], dims[0], dims[1], pos[0], pos[1], dims[0], dims[1]);
-            }
+    var SpriteBlank = Game.SpriteBlank = Sprite.extend({
+        style: '',
+        dim: [],
+
+        init: function(style, dim) {
+            this.style = style;
+            this.dim = dim;
+        },
+
+        draw: function(ctx, pos) {
+            ctx.fillStyle = this.style;
+            ctx.fillRect(pos[0], pos[1], this.dim[0], this.dim[1]);
         }
     });
 
