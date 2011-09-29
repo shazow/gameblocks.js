@@ -70,15 +70,28 @@ test("find_path", function() {
     var world_box = {x: 0, y: 0, width: 5, height: 5};
     var world = unstdlib.make_grid_fast(world_box, 0);
 
-    var expected_path = [
+    var path = find_path(world, world_box, {x: 1, y: 1}, {x: 3, y: 3});
+
+    deepEqual(path, [
         {x: 1, y: 1},
         {x: 2, y: 1},
         {x: 3, y: 1},
         {x: 3, y: 2},
-        {x: 3, y: 3},
-    ];
-    var path = find_path(world, world_box, {x: 1, y: 1}, {x: 3, y: 3});
+        {x: 3, y: 3}
+    ]);
 
-    deepEqual(path, expected_path);
+    var path = find_path(world, world_box, {x: 4, y: 4}, {x: 0, y: 0});
+
+    deepEqual(path, [
+        {x: 4, y: 4},
+        {x: 4, y: 3},
+        {x: 4, y: 2},
+        {x: 4, y: 1},
+        {x: 4, y: 0},
+        {x: 3, y: 0},
+        {x: 2, y: 0},
+        {x: 1, y: 0},
+        {x: 0, y: 0}
+    ]);
 
 });
