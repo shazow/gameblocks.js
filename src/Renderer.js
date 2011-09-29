@@ -13,13 +13,13 @@ var Game = (function(Game) {
         init: function(camera, num_layers) {
             this.container = camera.element;
 
-            var attrs = {'width': camera.width, 'height': camera.height};
+            var attrs = {'width': camera.size , 'height': camera.height};
 
             var i = num_layers || 1;
 
             // TODO: Make layers a named dict?
             while(i--) {
-                var layer = Dom.create("canvas", attrs);
+                var layer = Dom.create("canvas", camera.size);
                 this.layers.push(layer.getContext('2d'));
                 this.container.appendChild(layer);
             }

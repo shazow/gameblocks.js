@@ -38,31 +38,32 @@
 
 <script type="text/javascript">
 
+    // Constants
+    var WIDTH=50, HEIGHT=30, MAGNIFY=10;
+
+    // Define the confines of our world to check for boundary-collision
+    var world_box = {x: 0, y: 0, width: WIDTH, height: HEIGHT};
+
+    // Create our game objects
     var container = Dom.select("#container");
-    var camera = new Game.Camera(container, 500, 300);
+    var camera = new Game.Camera(container, {width: WIDTH*MAGNIFY, height: HEIGHT*MAGNIFY});
     var renderer = new Game.Renderer(camera, 1);
     var state_machine = new Game.StateMachine();
     var input = new Game.Input();
 
-    // Constants
-    var WIDTH=50, HEIGHT=30, MAGNIFY=10;
-
     // Make a 2d array grid of 0's
-    var world = unstdlib.make_grid_fast([WIDTH, HEIGHT], 0);
-
-    // Define the confines of our world to check for boundary-collision
-    var world_box = [0, 0, WIDTH-1, HEIGHT-1];
+    var world = unstdlib.make_grid_fast(world_box, 0);
 
     // Store the player position
-    var player_pos = [15, 15];
+    var player_pos = {x: 15, y: 15};
 
     // Waypoints for pathfinding
-    var waypoints = unstdlib.cycle([[0, 0], [WIDTH-1, HEIGHT-1]]);
+    var next_waypoint = unstdlib.cycle([{x: 0, y: 0}, {x: WIDTH-1, y: HEIGHT-1}]);
 
     // NPC
     var npc_queue = [];
-    var npc_pos = [0, 0];
-    var npc_goal = waypoints();
+    var npc_pos = {x: 0, y: 0};
+    var npc_goal = next_waypoint();
 
     // Define what our tiles will look like based on the value
     // TODO: Use image tiles instead of filled colors
@@ -80,14 +81,13 @@
         ctx.fillStyle = tile_styles[last_val];
 
         // Traverse the visible world and re-paint it onto our canvas context.
-        unstdlib.iter_box(world_box, function(pos) {
-            var x = pos[0], y = pos[1];
+        unstdlib.iter_box(world_box, function(x, y) {
             var val = world[x][y];
 
             // Should we paint the player here instead of the world texture? Or the NPC?
-            if(player_pos[0] == x && player_pos[1] == y) {
+            if(player_pos.x == x && player_pos.y == y) {
                 val = 2;
-            } else if(npc_pos[0] == x && npc_pos[1] == y) {
+            } else if(npc_pos.x == x && npc_pos.y == y) {
                 val = 3;
             }
 
@@ -103,10 +103,10 @@
 
     // Define player movement delta values for input actions
     var player_motions = {
-        'right': [1, 0],
-        'left': [-1, 0],
-        'down': [0, 1], // Our grid is upside-down for convenience
-        'up': [0, -1]
+        'right': {x: 1, y: 0},
+        'left': {x: -1, y: 0},
+        'down': {x: 0, y: 1}, // Our grid is upside-down for convenience
+        'up': {x: 0, y: -1}
     }
 
     // Bind input keys to actions
@@ -123,14 +123,14 @@
 
     // Helper function to check for collision (used in our 'world' State)
     var is_collision = function(pos) {
-        return world[pos[0]][pos[1]] == 1;
+        return world[pos.x][pos.y] == 1;
     }
 
     state_machine.add('world', {
         'run': function() {
             render_world();
 
-            var x = player_pos[0], y = player_pos[1];
+            var x = player_pos.x, y = player_pos.y;
 
             if(input.pressed['build']) {
                 world[x][y] = 1; // Set current world position to 'wall'
@@ -144,15 +144,15 @@
                 if(!input.pressed[action]) continue;
 
                 var delta = player_motions[action];
-                x += delta[0];
-                y += delta[1];
+                x += delta.x;
+                y += delta.y;
 
                 has_moved = true;
             }
 
             // Move the NPC
             if(npc_queue.length == 0) {
-                npc_goal = waypoints();
+                npc_goal = next_waypoint();
                 npc_queue = find_path(npc_pos, npc_goal);
             }
 
@@ -169,10 +169,12 @@
                 world[x][y] = 0; // Destroy the wall!
             }
 
+            var new_pos = {x: x, y: y};
+
             // Is the player move valid?
-            if(unstdlib.in_boundary([x, y], world_box) && !is_collision([x, y])) {
+            if(unstdlib.in_boundary(new_pos, world_box) && !is_collision(new_pos)) {
                 // Update the player's position
-                player_pos = [x, y];
+                player_pos = new_pos;
             }
         }
     });
@@ -190,18 +192,23 @@
      * More here: http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
      */
     function builder_estimate_cost_fn(a, b) {
-        return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
+        return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
     }
 
+    var neighbor_directions = [
+        {x: 0, y: 1},
+        {x: 1, y: 0},
+        {x: 0, y: -1},
+        {x: -1, y: 1}
+    ];
     function builder_neighbors_fn(pos) {
         var r = [];
-        var directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
-
-        for(var i=0, istop=directions.length, d; i<istop, d=directions[i]; i++) {
-            var p = [pos[0] + d[0], pos[1] + d[1]];
+        for(var i=0; i<4; i++) {
+            var d = neighbor_directions[i];
+            var p = {x: pos.x + d.x, y: pos.y + d.y};
 
             if(!unstdlib.in_boundary(p, world_box)) continue; // Must be in our boundary
-            if(world[p[0]][p[1]]==1) continue;
+            if(world[p.x][p.y]==1) continue;
 
             r.push(p);
         }
@@ -215,16 +222,19 @@
 
     function builder_compare_fn(a, b) {
         // Sort by (y, x)
-        var col = a[1] - b[1];
+        var col = a.y - b.y;
         if(col!=0) return col;
-        return a[0] - b[0];
+        return a.x - b.x;
     }
 
+    function builder_serialize_fn(pos) {
+        return pos.x + ',' + pos.y;
+    }
 
     function find_path(start, goal) {
-        var r = Game.pathfind_astar(start, goal, builder_estimate_cost_fn, builder_neighbors_fn, builder_distance_fn, builder_compare_fn);
+        var r = Game.pathfind_astar(start, goal, builder_estimate_cost_fn, builder_neighbors_fn, builder_distance_fn, builder_compare_fn, builder_serialize_fn);
 
-        if(!r) return [];
+        if(r===false) return [];
         r.push(goal);
         return r;
     }
