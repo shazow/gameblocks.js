@@ -108,7 +108,7 @@
 
     // Given a position, find potential contiguous lines of a given length in any direction.
     var find_line = function(pos, length) {
-        var player = grid[pos[0]][pos[1]].player;
+        var player = grid[pos.x][pos.y].player;
         length = length || 5;
 
         var directions = [[1,0], [0,1], [1,1], [-1,1]];
@@ -116,16 +116,16 @@
             var direction = directions[i];
 
             var line = [];
-            var ipos = [pos[0] - direction[0] * length, pos[1] - direction[1] * length];
+            var ipos = {x: pos.x - direction[0] * length, y: pos.y - direction[1] * length};
 
             for(var j=length*2; j>1; j--) {
                 // TODO: Could quit early if line.length + j < length
 
-                var ipos = [ipos[0] + direction[0], ipos[1] + direction[1]];
+                var ipos = {x: ipos.x + direction[0], y: ipos.y + direction[1]};
 
                 if(!unstdlib.in_boundary(ipos, grid_box)) continue;
 
-                var s = grid[ipos[0]][ipos[1]];
+                var s = grid[ipos.x][ipos.y];
                 if(s.player != player) {
                     if(line.length >= length) return line;
 
@@ -141,16 +141,16 @@
         return false;
     }
 
-    var grid = unstdlib.make_grid([WIDTH, HEIGHT], function(pos) {
-        return new Square(pos);
-    });
+    var grid_box = {x: 0, y: 0, width: WIDTH, height: HEIGHT};
 
-    var grid_box = [0, 0, WIDTH-1, HEIGHT-1];
+    var grid = unstdlib.make_grid(grid_box, function(x, y) {
+        return new Square({x: x, y: y});
+    });
 
     var get_square = function(pos) {
         // ~~ is eqv to Math.floor, we -1 to account for the border
         // The grid is stored upside-down
-        return grid[~~((pos[1]-1)/MAGNIFY)][~~((pos[0]-1)/MAGNIFY)];
+        return grid[~~((pos.y-1)/MAGNIFY)][~~((pos.x-1)/MAGNIFY)];
     }
 
 
@@ -161,8 +161,8 @@
     state_machine.add('start', {
         'enter': function() {
             // Reset the grid
-            unstdlib.iter_box(grid_box, function(pos) {
-                grid[pos[0]][pos[1]].set_player(false);
+            unstdlib.iter_box(grid_box, function(x, y) {
+                grid[x][y].set_player(false);
             });
 
             // Reset the score board
@@ -212,7 +212,7 @@
             player.set_score(player.score + found_line.length);
             for(var i=0, stop=found_line.length; i<stop; i++) {
                 var pos = found_line[i];
-                var s = grid[pos[0]][pos[1]];
+                var s = grid[pos.x][pos.y];
                 s.container.innerHTML = player.symbol.toUpperCase();
                 s.player = true;
             }

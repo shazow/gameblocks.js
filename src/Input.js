@@ -74,7 +74,7 @@ var Game = (function(Game) {
         },
 
         _mouse_move: function(e) {
-            this.mouse_pos = [e.pageX - this.mouse_offset[0], e.pageY - this.mouse_offset[1]];
+            this.mouse_pos = {x: e.pageX - this.mouse_offset[0], y: e.pageY - this.mouse_offset[1]};
         },
 
         _keydown: function(e) {
