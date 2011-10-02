@@ -1,11 +1,11 @@
 // Constants
 var WIDTH=30, HEIGHT=20, MAGNIFY=12;
-var world_box = [0, 0, WIDTH-1, HEIGHT-1];
+var world_box = {x: 0, y: 0, width: WIDTH, height: HEIGHT};
 
 
 // Game
 var container = Dom.select("#container");
-var camera = new Game.Camera(container, WIDTH*MAGNIFY, HEIGHT*MAGNIFY);
+var camera = new Game.Camera(container, {width: WIDTH*MAGNIFY, height: HEIGHT*MAGNIFY});
 var renderer = new Game.Renderer(camera, 1);
 var input = new Game.Input();
 var state_machine = new Game.StateMachine();
@@ -16,8 +16,8 @@ var ctx = renderer.layers[0];
 
 var world = (function(s, width, height) {
     // Parse world string
-    return unstdlib.make_grid([width, height], function(pos) {
-        return s[pos[1] * width + pos[0]];
+    return unstdlib.make_grid({width: width, height: height}, function(x, y) {
+        return s[y * width + x];
     });
 })(
 "111111111111111111111111111111" +
@@ -42,7 +42,7 @@ var world = (function(s, width, height) {
 "111111111111111111111111111111", WIDTH, HEIGHT);
 
 var tile_lookup = {};
-new Game.SpriteSheet("sprites.gif", [12, 12], [196, 77, 192+12*14, 77+12], function() {
+new Game.SpriteSheet("sprites.gif", {width: 12, height: 12}, {x: 196, y: 77, width: 12*14, height: 12}, function() {
     tile_lookup[2] = new Game.Sprite(this, 3);
     tile_lookup[3] = new Game.Sprite(this, 11);
     tile_lookup[4] = new Game.Sprite(this, 2);
@@ -52,7 +52,7 @@ new Game.SpriteSheet("sprites.gif", [12, 12], [196, 77, 192+12*14, 77+12], funct
     tile_lookup[8] = new Game.Sprite(this, 5);
     tile_lookup[9] = new Game.Sprite(this, 4);
 });
-new Game.SpriteSheet("sprites.gif", [12, 12], [148, 89, 148+12*4, 89+12], function() {
+new Game.SpriteSheet("sprites.gif", {width: 12, height: 12}, {x: 148, y: 89, width: 12*4, height: 12}, function() {
     tile_lookup['a'] = new Game.Sprite(this, 1);
     tile_lookup['b'] = new Game.Sprite(this, 0);
     tile_lookup['c'] = new Game.Sprite(this, 2);
@@ -65,30 +65,30 @@ var draw_world = function(ctx) {
 
     // TODO: Cache this part, since the world doesn't change
     ctx.fillStyle = '#aaa';
-    unstdlib.iter_box(world_box, function(pos) {
-        var val = world[pos[0]][pos[1]];
+    unstdlib.iter_box(world_box, function(x, y) {
+        var val = world[x][y];
         var tile = tile_lookup[val];
 
         if(tile===undefined) return;
 
-        tile.draw(ctx, [pos[0] * MAGNIFY, pos[1] * MAGNIFY]);
+        tile.draw(ctx, {x: x * MAGNIFY, y: y * MAGNIFY});
     });
 }
 
-var is_collision = function(pos) {
-    return world[pos[0]][pos[1]] != 0;
+var is_collision = function(x, y) {
+    return world[x][y] != 0;
 }
 
-var sheet1 = new Game.SpriteSheet("sprites.gif", [24, 24], [292, 172, 292+24*4, 172+24]);
-var sheet2 = new Game.SpriteSheet("sprites.gif", [24, 24], [4, 268, 4+24*4, 268+24]);
+var sheet1 = new Game.SpriteSheet("sprites.gif", {width: 24, height: 24}, {x: 292, y: 172, width: 24*4, height: 24});
+var sheet2 = new Game.SpriteSheet("sprites.gif", {width: 24, height: 24}, {x: 4, y: 268, width: 24*4, height: 24});
 var frame_limiter = new Game.FrameLimiter(5);
 
 var Player = Class({
     directions: {
-        'right': [1, 0],
-        'left': [-1, 0],
-        'down': [0, 1], // Our grid is upside-down for convenience
-        'up': [0, -1]
+        'right': {x: 1, y: 0},
+        'left': {x: -1, y: 0},
+        'down': {x: 0, y: 1}, // Our grid is upside-down for convenience
+        'up': {x: 0, y: -1}
     },
     direction: null,
     next_direction: null,
@@ -104,7 +104,7 @@ var Player = Class({
     last_sprite: 'right',
 
     init: function(pos) {
-        this.pos = pos || [0, 0];
+        this.pos = pos || {x: 0, y: 0};
     },
 
     draw: function(ctx, steps) {
@@ -113,10 +113,10 @@ var Player = Class({
         var steps = steps % 1;
         var offset = 6;
 
-        var pos = [
-            ~~((this.pos[0]*steps+this.last_pos[0]*(1-steps))*MAGNIFY-offset),
-            ~~((this.pos[1]*steps+this.last_pos[1]*(1-steps))*MAGNIFY-offset)
-        ];
+        var pos = {
+            x: ~~((this.pos.x*steps+this.last_pos.x*(1-steps))*MAGNIFY-offset),
+            y: ~~((this.pos.y*steps+this.last_pos.y*(1-steps))*MAGNIFY-offset)
+        };
         sprite.draw(ctx, pos);
     },
 
@@ -124,24 +124,24 @@ var Player = Class({
         // Process player actions
         var direction = player.next_direction;
 
-        var x = player.pos[0], y = player.pos[1];
+        var x = player.pos.x, y = player.pos.y;
 
         if(direction) {
             // Compute new position
             var delta = player.directions[direction];
-            x += delta[0];
-            y += delta[1];
+            x += delta.x;
+            y += delta.y;
         }
 
         // Check for collisions
 
         // Hit world boundary?
-        if(!unstdlib.in_boundary([x, y], world_box) || is_collision([x, y])) {
+        if(!unstdlib.in_boundary({x: x, y: y}, world_box) || is_collision(x, y)) {
             // Stop and reset direction
             this.last_sprite = direction;
             direction = null;
-            x = player.pos[0];
-            y = player.pos[1];
+            x = player.pos.x;
+            y = player.pos.y;
         }
 
         if(world[x][y] != 0) 
@@ -155,7 +155,7 @@ var Player = Class({
         // Update player's position
         player.direction = direction;
         player.last_pos = player.pos;
-        player.pos = [x, y];
+        player.pos = {x: x, y: y};
     }
 });
 
@@ -171,7 +171,7 @@ state_machine.add('intro', {
 });
 state_machine.add('play', {
     'enter': function() {
-        player = new Player([3, 3]);
+        player = new Player({x: 3, y: 3});
         engine.start(30);
     },
 
