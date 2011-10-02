@@ -29,7 +29,7 @@
 <script type="text/javascript">
 
     var container = Dom.select("#container");
-    var camera = new Game.Camera(container, 300, 300);
+    var camera = new Game.Camera(container, {width: 300, height: 300});
     var renderer = new Game.Renderer(camera, 1);
     var state_machine = new Game.StateMachine();
     var input = new Game.Input();
@@ -39,7 +39,7 @@
     var render_world = function() {
         var ctx = renderer.layers[0];
         ctx.fillStyle = colors[0];
-        ctx.fillRect(10, 10, camera.width-10, camera.height-10);
+        ctx.fillRect(10, 10, camera.size.width-10, camera.size.height-10);
     }
 
     state_machine.add('world', {
