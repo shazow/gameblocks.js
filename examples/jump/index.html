@@ -39,11 +39,13 @@
 <script type="text/javascript">
 
     var container = Dom.select("#container");
-    var camera = new Game.Camera(container, 500, 300);
+    var camera = new Game.Camera(container, {width: 500, height: 300});
     var renderer = new Game.Renderer(camera, 1);
     var input = new Game.Input();
+
     var state_machine = new Game.StateMachine();
     var engine = new Game.Engine(state_machine); // This time we'll start and stop the engine inside our States
+
     var player_clock = new Game.Clock(); // We'll use a clock to maintain player motion speed regardless of frame rate
     var map_clock = new Game.Clock(); // We'll use another clock to maintain map motion speed regardless of frame rate
     var speed_clock = new Game.Clock(); // We'll use a final clock to maintain how quickly the map speeds up
@@ -54,7 +56,7 @@
     var WIDTH=50, HEIGHT=30, MAGNIFY=10;
 
     // Define the confines of our world to check for boundary-collision
-    var world_box = [0, 0, WIDTH-1, HEIGHT-1];
+    var world_box = {x: 0, y: 0, width: WIDTH, height: HEIGHT};
 
     // Store the player data
     var player = {};
@@ -99,7 +101,7 @@
             y2 = (Math.sin(toRads((i+map_offset)*5)) * HEIGHT/3) + (HEIGHT/2);
 
             //draw a line between the 2 points
-            unstdlib.iter_line([i-1, Math.floor(y1)], [i, Math.floor(y2)], (function(pos) { map[pos[0]][pos[1]] = 1; }));
+            unstdlib.iter_line({x: i-1, y: Math.floor(y1)}, {x: i, y: Math.floor(y2)}, (function(x, y) { map[x][y] = 1; }));
         }
     }
 
@@ -110,10 +112,10 @@
 
     // Define player movement delta values
     var player_directions = {
-        'right': [1, 0],
-        'left': [-1, 0],
-        'down': [0, 1], // Our grid is upside-down for convenience
-        'up': [0, -1]
+        'right': {x: 1, y: 0},
+        'left': {x: -1, y: 0},
+        'down': {x: 0, y: 1}, // Our grid is upside-down for convenience
+        'up': {x: 0, y: -1}
     }
 
     // Bind input keys to actions
@@ -166,7 +168,7 @@
     state_machine.add('play', {
         'enter': function() {
             player = {
-                'pos': [15,15],
+                'pos': {x: 15, y: 15},
                 'move_speed': 20, // Per second
                 'jump_speed': 0,
                 'jumping': 0
@@ -194,26 +196,26 @@
             if((player_clock.delta() / 1000) * player.move_speed >= 1)
             {
                 // do lateral movement before vertical, as that's what the player has control over
-                x = player.pos[0];
-                y = player.pos[1];
+                x = player.pos.x;
+                y = player.pos.y;
 
                 if(input.pressed['left'])
                 {
-                    x += player_directions['left'][0];
-                    y += player_directions['left'][1];
+                    x += player_directions['left'].x;
+                    y += player_directions['left'].y;
                 }
 
                 if(input.pressed['right'])
                 {
-                    x += player_directions['right'][0];
-                    y += player_directions['right'][1];
+                    x += player_directions['right'].x;
+                    y += player_directions['right'].y;
                 }
 
                 // check to see if moved into an invalid location. reset location if so
                 if(x >= WIDTH || y>= HEIGHT || map[x][y] == 1)
                 {
-                    x = player.pos[0];
-                    y = player.pos[1];
+                    x = player.pos.x;
+                    y = player.pos.y;
                 }
 
                 // if jumping, check for collisions
@@ -221,13 +223,13 @@
                 {
                     if(player.jump_speed > 0)
                     {
-                        new_x = x + player_directions['up'][0] * player.jump_speed;
-                        new_y = y + player_directions['up'][1] * player.jump_speed;
+                        new_x = x + player_directions['up'].x * player.jump_speed;
+                        new_y = y + player_directions['up'].y * player.jump_speed;
                     }
                     else
                     {
-                        new_x = x + player_directions['down'][0] * -player.jump_speed;
-                        new_y = y + player_directions['down'][1] * -player.jump_speed;
+                        new_x = x + player_directions['down'].x * -player.jump_speed;
+                        new_y = y + player_directions['down'].y * -player.jump_speed;
                     }
 
                     //check each square between current location and new location
@@ -281,7 +283,7 @@
                     }
                 }
 
-                player.pos = [x, y];
+                player.pos = {x: x, y: y};
 
                 player_clock.tick();
             }
@@ -291,10 +293,10 @@
                 map_offset ++;
                 make_map();
 
-                if(map[player.pos[0]][player.pos[1]] == 1)
-                    player.pos[0] --;
+                if(map[player.pos.x][player.pos.y] == 1)
+                    player.pos.x --;
 
-                if(player.pos[0] < 0)
+                if(player.pos.x < 0)
                     return state_machine.enter('died');
 
                 map_clock.tick();
@@ -327,7 +329,7 @@
 
             // Paint our player
             ctx.fillStyle = tile_styles['player'];
-            ctx.fillRect(player.pos[0]*MAGNIFY, player.pos[1]*MAGNIFY, MAGNIFY, MAGNIFY);
+            ctx.fillRect(player.pos.x*MAGNIFY, player.pos.y*MAGNIFY, MAGNIFY, MAGNIFY);
         }
     });
 
