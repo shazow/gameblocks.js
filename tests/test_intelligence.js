@@ -66,7 +66,7 @@ var find_path = function(world, world_box, start, goal) {
 }
 
 
-test("find_path", function() {
+test("pathfind_astar simple", function() {
     var world_box = {x: 0, y: 0, width: 5, height: 5};
     var world = unstdlib.make_grid_fast(world_box, 0);
 

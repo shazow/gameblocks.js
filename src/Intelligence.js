@@ -27,12 +27,13 @@ var Game = (function(Game) {
         var came_from = {};
 
         // Score caches
-        var g_score = {}, // Accurate progress distance
-            h_score = {}, // Estimated remaining distance
-            f_score = {}; // Estimated total path distance
+        var g_score = {}; // Accurate progress distance
+        var h_score = {}; // Estimated remaining distance
+        var f_score = {}; // Estimated total path distance
 
-        var start_str = serialize_fn(start),
-            goal_str = serialize_fn(goal);
+        // We need dict lookup friendly keys, so we serialize everything into strings.
+        var start_str = serialize_fn(start);
+        var goal_str = serialize_fn(goal);
 
         g_score[start_str] = 0;
         h_score[start_str] = f_score[start_str] = estimate_cost_fn(start, goal);
@@ -85,10 +86,10 @@ var Game = (function(Game) {
     // Helper
     function pathfinder_reconstruct(came_from, current_node, serialize_fn) {
         var current_node_str = serialize_fn(current_node);
-        var n = came_from[current_node_str];
-        if(n === undefined) return [current_node];
+        var next_node = came_from[current_node_str];
+        if(next_node === undefined) return [current_node];
 
-        var p = pathfinder_reconstruct(came_from, came_from[current_node_str], serialize_fn);
+        var p = pathfinder_reconstruct(came_from, next_node, serialize_fn);
 
         p.push(current_node);
         return p;
