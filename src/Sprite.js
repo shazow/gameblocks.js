@@ -48,8 +48,8 @@ var Game = (function(Game) {
                 }
 
                 // Populate sprite boxes
-                for(var y=box.y, ystop=box.height, yincr = dim.height; y+yincr<=ystop; y += yincr) {
-                    for(var x=box.x, xstop=box.width, xincr = dim.width; x+xincr<=xstop; x += xincr) {
+                for(var y=box.y, ystop=box.y+box.height, yincr = dim.height; y+yincr<=ystop; y += yincr) {
+                    for(var x=box.x, xstop=box.x+box.width, xincr = dim.width; x+xincr<=xstop; x += xincr) {
                         // FIXME: Should we only push the x, y because we can get
                         //        the height and width from self.dim?
                         sprite_boxes.push({x: x, y: y, width: xincr, height: yincr});
@@ -79,7 +79,11 @@ var Game = (function(Game) {
         },
         draw: function(ctx, pos) {
             var width = this.dim.width, height = this.dim.height;
-            ctx.drawImage(this.sheet.img, this.box.x, this.box.y, width, height, pos.x, pos.y, width, height);
+            ctx.drawImage(this.sheet.img,
+                          this.box.x, this.box.y,
+                          width, height,
+                          pos.x, pos.y,
+                          width, height);
         }
     });
 
