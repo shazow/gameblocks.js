@@ -38,7 +38,7 @@
 <script type="text/javascript">
 
     var container = Dom.select("#container");
-    var camera = new Game.Camera(container, 500, 300);
+    var camera = new Game.Camera(container, {width: 500, height: 300});
     var renderer = new Game.Renderer(camera, 1);
     var input = new Game.Input();
     var state_machine = new Game.StateMachine();
@@ -51,7 +51,7 @@
     var WIDTH=50, HEIGHT=30, MAGNIFY=10;
 
     // Define the confines of our world to check for boundary-collision
-    var world_box = [0, 0, WIDTH-1, HEIGHT-1];
+    var world_box = {x: 0, y: 0, width: WIDTH, height: HEIGHT};
 
     // Store the player data
     var player = {};
@@ -68,10 +68,10 @@
 
     // Define player movement delta values for input actions
     var player_directions = {
-        'right': [1, 0],
-        'left': [-1, 0],
-        'down': [0, 1], // Our grid is upside-down for convenience
-        'up': [0, -1]
+        'right': {x: 1, y: 0},
+        'left': {x: -1, y: 0},
+        'down': {x: 0, y: 1}, // Our grid is upside-down for convenience
+        'up': {x: 0, y: -1}
     }
 
     // Lookup index to decide on invalid directions quickly
@@ -133,12 +133,12 @@
     state_machine.add('play', {
         'enter': function() {
             player = {
-                'pos': [15,15],
+                'pos': {x: 15,y: 15},
                 'direction': 'right',
                 'pending_direction': 'right',
                 'chain_length': 3,
                 'move_rate': 5, // Per second
-                'goal_pos': [20,20]
+                'goal_pos': {x: 20, y: 20}
             }
             player_chain = [];
 
@@ -172,17 +172,17 @@
             // We defer setting the direction until after the tick is complete so that we don't reverse on ourselves between ticks.
             player.direction = player.pending_direction;
 
-            var x = player.pos[0], y = player.pos[1];
+            var x = player.pos.x, y = player.pos.y;
 
             // Compute new position
             var delta = player_directions[player.direction];
-            x += delta[0];
-            y += delta[1];
+            x += delta.x;
+            y += delta.y;
 
             // Check for collisions
 
             // Hit world boundary?
-            if(!unstdlib.in_boundary([x, y], world_box)) {
+            if(!unstdlib.in_boundary({x: x, y: y}, world_box)) {
                 return state_machine.enter('died');
             }
 
@@ -190,13 +190,13 @@
             // TODO: Merge this traversal with the same traversal in the rendering function
             for(var i=0, stop=player_chain.length; i<stop; i++) {
                 var pos = player_chain[i];
-                if(pos[0] == x && pos[1] == y) {
+                if(pos.x == x && pos.y == y) {
                     return state_machine.enter('died');
                 }
             }
 
             // Hit goal?
-            if(player.goal_pos[0] == x && player.goal_pos[1] == y) {
+            if(player.goal_pos.x == x && player.goal_pos.y == y) {
                 player.chain_length = Math.max(1, player.chain_length*1.2);
                 player.move_rate *= 1.05;
 
@@ -206,11 +206,11 @@
                 // TODO: This could be done better...
                 var goal_pos = false;
                 while(!goal_pos) {
-                    var goal_pos = [Math.floor(Math.random() * WIDTH), Math.floor(Math.random() * HEIGHT)];
+                    var goal_pos = {x: Math.floor(Math.random() * WIDTH), y: Math.floor(Math.random() * HEIGHT)};
 
                     for(var i=0, stop=player_chain.length; i<stop; i++) {
                         var pos = player_chain[i];
-                        if(pos[0] == x && pos[1] == y) {
+                        if(pos.x == x && pos.y == y) {
                             goal_pos = false;
                             break;
                         }
@@ -221,11 +221,11 @@
             }
 
             // Update player's position
-            player.pos = [x, y];
+            player.pos = {x: x, y: y};
             if(player_chain.length >= player.chain_length) {
                 player_chain.shift(); // Pop the tail
             }
-            player_chain.push([x, y]);
+            player_chain.push({x: x, y: y});
 
 
             // All stateful updates are done, time to paint the world
@@ -236,13 +236,13 @@
 
             // Paint our goal
             ctx.fillStyle = tile_styles['goal'];
-            ctx.fillRect(player.goal_pos[0]*MAGNIFY, player.goal_pos[1]*MAGNIFY, MAGNIFY, MAGNIFY);
+            ctx.fillRect(player.goal_pos.x*MAGNIFY, player.goal_pos.y*MAGNIFY, MAGNIFY, MAGNIFY);
 
             // Paint our player
             ctx.fillStyle = tile_styles['player'];
             for(var i=0, stop=player_chain.length; i<stop; i++) {
                 var pos = player_chain[i];
-                ctx.fillRect(pos[0]*MAGNIFY, pos[1]*MAGNIFY, MAGNIFY, MAGNIFY);
+                ctx.fillRect(pos.x*MAGNIFY, pos.y*MAGNIFY, MAGNIFY, MAGNIFY);
             }
         }
     });
