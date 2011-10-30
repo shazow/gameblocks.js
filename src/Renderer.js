@@ -18,8 +18,9 @@ var Game = (function(Game) {
             var i = num_layers || 1;
 
             // TODO: Make layers a named dict?
+            var styles = {style: 'position: absolute;', width: camera.size.width, height: camera.size.height};
             while(i--) {
-                var layer = Dom.create("canvas", camera.size);
+                var layer = Dom.create("canvas", styles);
                 this.layers.push(layer.getContext('2d'));
                 this.container.appendChild(layer);
             }
