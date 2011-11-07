@@ -1,4 +1,4 @@
-module('core');
+module('intelligence');
 
 /** Setup helpers: */
 
