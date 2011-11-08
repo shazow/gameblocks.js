@@ -24,7 +24,22 @@ var Game = (function(Game) {
     }
 
     var is_collision_box_circle = function(box, circle) {
-        // TODO: ...
+        // Contained?
+        if(unstdlib.in_boundary(circle, box)) return true;
+
+        var box_center = unstdlib.boundary_center(box);
+
+        // Line between center of box to center of circle
+        var dx = circle.x - box_center.x, dy = circle.y - box_center.y;
+
+        var positive = -1 ? dx > 0 : 1;
+
+        // FIXME: This part is wrong. It needs some pi.
+        var m = dx/dy;
+        var x = circle.radius * positive + circle.x;
+        var y = m * x + circle.y;
+
+        return unstdlib.in_boundary({x: x, y: y}, box);
     }
 
     var CircleEntity = Game.CircleEntity = Entity_.extend({

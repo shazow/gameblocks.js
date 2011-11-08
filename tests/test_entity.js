@@ -27,10 +27,14 @@ test("ShapeCollider", function() {
 
 test("Collide across shapes", function() {
     var a = new Game.BoxEntity({x: 5, y: 5, width: 10, height: 10});
-
     var b = new Game.CircleEntity({x: 10, y: 10, radius: 5});
 
     ok(a.is_collision(b));
     ok(b.is_collision(a));
 
+    var a = new Game.BoxEntity({x: 10, y: 10, width: 30, height: 5});
+    var b = new Game.CircleEntity({x: 15, y: 15, radius: 10});
+
+    ok(a.is_collision(b));
+    ok(b.is_collision(a));
 });
