@@ -107,7 +107,7 @@ var Game = (function(Game) {
             this.reset();
         },
         reset: function() {
-            this.bitmap = unstdlib.make_grid_fast(box, 0);
+            this.bitmap = unstdlib.make_grid_fast(this.box, 0);
         },
         add_box: function(box, value) {
             if(value===undefined) value = 1;
