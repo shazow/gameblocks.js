@@ -170,8 +170,8 @@ var Game = (function(Game) {
         },
         _get_cell: function(pos, create_if_missing) {
             var grid_pos = [
-                pos.x - this.cell_size.x % pos.x,
-                pos.y - this.cell_size.y % pos.y
+                pos.x - this.cell_size.width % pos.x,
+                pos.y - this.cell_size.height % pos.y
             ]
             var cell = this.grid[grid_pos];
             if(cell===undefined) {
