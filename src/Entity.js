@@ -129,8 +129,8 @@ var Game = (function(Game) {
             var bitmap = this.bitmap;
 
             var i = 3;
-            for(var y=y1; y<y2; y++) {
-                for(var x=x1; x<x2; x++) {
+            for(var y=box.y, y2=box.height; y<y2; y++) {
+                for(var x=box.x, x2=box.width; x<x2; x++) {
                     bitmap[x][y] += Number(data[i] == 255);
                     i+= 4;
                 }
