@@ -124,6 +124,7 @@ var Game = (function(Game) {
             if(mask===undefined) mask = 255;
             if(value===undefined) value = 1;
 
+            var box = this.box;
             var data = ctx.getImageData(box.x, box.y, box.width, box.height).data;
             var bitmap = this.bitmap;
 
