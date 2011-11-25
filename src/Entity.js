@@ -78,7 +78,12 @@ var Game = (function(Game) {
     /** Entity Colliders: */
 
     var Collider = Game.Collider = Class({
+        entities: [],
+
         init: function() {
+            this.reset();
+        },
+        reset: function() {
             this.entities = [];
         },
         add: function(entity) {
@@ -99,9 +104,12 @@ var Game = (function(Game) {
 
         init: function(box) {
             this.box = box;
+            this.reset();
+        },
+        reset: function() {
             this.bitmap = unstdlib.make_grid_fast(box, 0);
         },
-        _add_box: function(box, value) {
+        add_box: function(box, value) {
             if(value===undefined) value = 1;
 
             var bitmap = this.bitmap;
@@ -112,7 +120,7 @@ var Game = (function(Game) {
                 }
             }
         },
-        _add_canvas: function(ctx, mask, value) {
+        add_canvas: function(ctx, mask, value) {
             if(mask===undefined) mask = 255;
             if(value===undefined) value = 1;
 
@@ -132,7 +140,7 @@ var Game = (function(Game) {
 
             // TODO: Support more types
             if(entity instanceof BoxEntity) {
-                return this._add_box(entity, value);
+                return this.add_box(entity, value);
             }
             this.bitmap[entity.pos.x][entity.pos.x] += value;
         },
@@ -153,8 +161,11 @@ var Game = (function(Game) {
         cell_size: {width: 10, height: 10},
 
         init: function(cell_size) {
-            this.grid = {};
             this.cell_size = cell_size || this.cell_size;
+            this.reset();
+        },
+        reset: function() {
+            this.grid = {};
         },
         _get_cell: function(pos, create_if_missing) {
             var grid_pos = [
