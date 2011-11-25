@@ -99,7 +99,7 @@ var Game = (function(Game) {
     });
 
     var BitmapCollider = Game.BitmapCollider = Collider.extend({
-        box: {width: 1, height: 1},
+        box: {x: 0, y: 0, width: 10, height: 10},
         bitmap: null,
 
         init: function(box) {
@@ -145,8 +145,13 @@ var Game = (function(Game) {
             }
             this.bitmap[entity.pos.x][entity.pos.x] += value;
         },
-        is_collision: function(pos) {
-            return (this.bitmap[pos.x] || {})[pos.y];
+        is_collision: function(entity) {
+            var pos = entity.pos;
+            var box = this.box;
+
+            if(!unstdlib.in_boundary(pos, box)) return false;
+
+            return this.bitmap[pos.x - box.x][pos.y - box.y];
         }
     });
 
@@ -188,6 +193,10 @@ var Game = (function(Game) {
         is_collision: function(entity) {
             // TODO: Return multiple? Callback?
             var cell = this._get_cell(entity.pos);
+
+            if(cell===undefined) {
+                return false;
+            }
 
             for(var i=cell.length-1; i>=0; i--) {
                 var current = cell[i];
