@@ -146,7 +146,7 @@ var Game = (function(Game) {
             this.bitmap[entity.pos.x][entity.pos.x] += value;
         },
         is_collision: function(pos) {
-            return this.bitmap[pos.x][pos.y];
+            return (this.bitmap[pos.x] || {})[pos.y];
         }
     });
 
