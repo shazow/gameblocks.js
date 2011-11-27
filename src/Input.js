@@ -93,8 +93,12 @@ var Game = (function(Game) {
             }
 
             var queue = this.queued[key_code];
-            if(queue && queue.length > 0) {
-                queue.pop()();
+            if(queue) {
+                if(typeof(queue) == 'function') {
+                    queue();
+                } else {
+                    queue.pop()();
+                }
             }
         },
         _keyup: function(e) {
@@ -121,24 +125,48 @@ var Game = (function(Game) {
                 this.bindings[key_code] = mapping[key];
             }
         },
-        queue: function(key, fn) {
+
+        /*
+         * @param key    Key code.
+         * @param fn {function}   Function to queue.
+         */
+        queue: function(key, fn, overwrite, repeat) {
             key_code = _coerce_key_code(key);
 
-            var has_binding = this.bindings[key_code];
-            if(has_binding) {
-                // Wrap fn to restore original binding.
-                var self = this;
-                fn = function() {
-                    self.bindings[key_code] = has_binding;
-                    fn();
-                };
+            if(!fn && overwrite) {
+                delete this.queued[key_code];
+                return;
             }
 
-            // Queue a one-time execution of fn when key is pressed.
             var queue = this.queued[key_code] || [];
-            queue.push(fn);
+
+            if(overwrite && repeat) {
+                queue = fn;
+
+            } else if(overwrite) {
+                queue = [fn];
+
+            } else {
+                var has_binding = this.bindings[key_code];
+                if(has_binding) {
+                    // Wrap fn to restore original binding.
+                    var self = this;
+                    fn = function() {
+                        self.bindings[key_code] = has_binding;
+                        fn();
+                    };
+                }
+
+                if(typeof(queue) == 'function') {
+                    queue = [queue];
+                }
+
+                // Queue a one-time execution of fn when key is pressed.
+                queue.push(fn);
+            }
 
             this.queued[key_code] = queue;
+
         }
     });
 
