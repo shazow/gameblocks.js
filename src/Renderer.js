@@ -26,9 +26,10 @@ var Game = (function(Game) {
             }
         },
 
-        reset: function(camera) {
+        reset: function() {
             for(var i=0, istop=this.layers.length; i<istop; i++) {
-                this.layers[i].clearRect(0, 0, camera.size.width, camera.size.height);
+                var layer = this.layers[i];
+                layer.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
             }
         }
 
