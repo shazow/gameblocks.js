@@ -100,24 +100,19 @@ var Game = (function(Game) {
 
     var BitmapCollider = Game.BitmapCollider = Collider.extend({
         box: {x: 0, y: 0, width: 10, height: 10},
-        size: {x: 0, y: 0, width: 10, height: 10},
         bitmap: null,
 
         init: function(box) {
             this.box = box;
-            this.size = {x: 0, y: 0, width: box.width-box.x, height: box.height-box.y};
             this.reset();
         },
         reset: function() {
-            this.bitmap = unstdlib.make_grid_fast(this.size, 0);
+            this.bitmap = unstdlib.make_grid_fast(this.box, 0);
         },
         add_box: function(box, value) {
             if(value===undefined) value = 1;
 
             var bitmap = this.bitmap;
-
-            var x1 = box.x - this.box.x, y1 = box.y - this.box.y;
-            var x2 = x1 + box.width, y2 = y1 + box.height;
 
             for(var x=x1; x<x2; x++) {
                 for(var y=y1; y<y2; y++) {
@@ -134,28 +129,21 @@ var Game = (function(Game) {
             var bitmap = this.bitmap;
 
             var i = 3;
-            var y2 = box.height-box.y, x2 = box.width - box.x;
-            for(var y=0; y<y2; y++) {
-                for(var x=0; x<x2; x++) {
+            for(var y=box.y, y2=box.height; y<y2; y++) {
+                for(var x=box.x, x2=box.width; x<x2; x++) {
                     bitmap[x][y] += Number(data[i] == 255);
                     i+= 4;
                 }
             }
-        },
-        add_pos: function(pos, value) {
-            if(value===undefined) value = 1;
-
-            this.bitmap[pos.x - this.box.x][pos.y - this.box.y] += value;
         },
         add: function(entity, value) {
             if(value===undefined) value = 1;
 
             // TODO: Support more types
             if(entity instanceof BoxEntity) {
-                return this.add_box(entity.box, value);
+                return this.add_box(entity, value);
             }
-            return this.add_pos(entity.pos, value);
-
+            this.bitmap[entity.pos.x][entity.pos.x] += value;
         },
         is_collision: function(entity) {
             var pos = entity.pos;

@@ -89,7 +89,7 @@ var Game = (function(Game) {
 
     var SpriteBlank = Game.SpriteBlank = Sprite.extend({
         style: '',
-        dim: {},
+        dim: [],
 
         init: function(style, dim) {
             this.style = style;

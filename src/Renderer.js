@@ -24,13 +24,6 @@ var Game = (function(Game) {
                 this.layers.push(layer.getContext('2d'));
                 this.container.appendChild(layer);
             }
-        },
-
-        reset: function() {
-            for(var i=0, istop=this.layers.length; i<istop; i++) {
-                var layer = this.layers[i];
-                layer.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
-            }
         }
 
         // TODO: Register entities with renderer?

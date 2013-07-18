@@ -14,9 +14,6 @@
  * the experience and handle transitions in to and out of it.
  *
  * FIXME: The string-based state_id is not ideal for refactored compression.
- *
- * TODO: Add StateMachine-local Input manager support so we can bind listeners
- *       for specific states.
  */
 var Game = (function(Game) {
 
