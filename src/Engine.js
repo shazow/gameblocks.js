@@ -1,7 +1,16 @@
 var Game = (function(Game) {
 
+    var AnimationFrameTicker = function(engine, state_machine, timer) {
+        return function tick(timestamp) {
+            timer.update();
+            state_machine.run();
+            if (engine.is_running) {
+                window.requestAnimationFrame(tick);
+            }
+        };
+    };
+
     var Engine = Game.Engine = Class({
-        loop: null,
         state_machine: null,
         is_running: false,
 
@@ -11,23 +20,26 @@ var Game = (function(Game) {
 
         tick_factory: function() {
             var a = Game.Time.update,
-                b = this.state_machine;
+                b = this.state_machine,
+                self = this;
 
-            return function() { a(); b.run(); };
+            return function tick(timestamp) {
+                a(); b.run();
+                if (self.is_running) {
+                    window.requestAnimationFrame(tick);
+                }
+            };
         },
 
         start: function(fps) {
             if(this.is_running) return;
-
-            var fps = fps || 30;
-
-            Game.Time.update();
             this.is_running = true;
-            this.loop = setInterval(this.tick_factory(), 1000 / fps);
+
+            var tick = AnimationFrameTicker(this, this.state_machine, Game.Time)
+            tick();
         },
 
         stop: function() {
-            clearInterval(this.loop);
             this.is_running = false;
         }
     });

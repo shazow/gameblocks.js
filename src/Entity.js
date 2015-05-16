@@ -95,7 +95,7 @@ var Game = (function(Game) {
                 if(current.is_collision(entity)) return current;
             }
             return false;
-        },
+        }
     });
 
     var BitmapCollider = Game.BitmapCollider = Collider.extend({

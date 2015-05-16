@@ -19,23 +19,6 @@ var Game = (function(Game) {
         return img;
     }
 
-    var get_sprite_boxes = function(box, dim) {
-        var r = [];
-        if (box===undefined) {
-            return r;
-        }
-
-        for(var y=box.y, ystop=box.y+box.height, yincr = dim.height; y+yincr<=ystop; y += yincr) {
-            for(var x=box.x, xstop=box.x+box.width, xincr = dim.width; x+xincr<=xstop; x += xincr) {
-                // FIXME: Should we only push the x, y because we can get
-                //        the height and width from self.dim?
-                r.push({x: x, y: y, width: xincr, height: yincr});
-            }
-        }
-        return r;
-    }
-
-
     var SpriteSheet = Game.SpriteSheet = Class({
         img: null,
         dim: {width: 16, height: 16},
@@ -56,15 +39,24 @@ var Game = (function(Game) {
             this.dim = dim || this.dim;
             this.box = box;
 
-            var sprite_boxes = this.sprite_boxes = get_sprite_boxes(box, dim);
+            var sprite_boxes = this.sprite_boxes = [];
 
             var self = this;
             this.img = get_sprite_image(src, function() {
                 if(box===undefined) {
                     self.box = box = {x: 0, y: 0, width: self.img.width, height: self.img.height};
-                    self.sprite_boxes = sprite_boxes = get_sprite_boxes(box, dim);
-                    self.num_sprites = sprite_boxes.length;
                 }
+
+                // Populate sprite boxes
+                for(var y=box.y, ystop=box.y+box.height, yincr = dim.height; y+yincr<=ystop; y += yincr) {
+                    for(var x=box.x, xstop=box.x+box.width, xincr = dim.width; x+xincr<=xstop; x += xincr) {
+                        // FIXME: Should we only push the x, y because we can get
+                        //        the height and width from self.dim?
+                        sprite_boxes.push({x: x, y: y, width: xincr, height: yincr});
+                    }
+                }
+
+                self.num_sprites = sprite_boxes.length;
 
                 callback && callback.call(self);
             });
