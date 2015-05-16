@@ -75,13 +75,13 @@ var Game = (function(Game) {
                 exit_handler && exit_handler(state_id);
             }
 
+            this.active_state_id = state_id;
+            this.run = new_state['run'];
+
             if(new_state) {
                 var entry_handler = new_state.enter;
                 entry_handler && entry_handler(last_state_id);
             }
-
-            this.active_state_id = state_id;
-            this.run = new_state['run'];
         }
     });
 

@@ -1,6 +1,13 @@
 var Game = (function(Game) {
 
+    var noop = function() {};
+
     var AnimationFrameTicker = function(engine, state_machine, timer) {
+        if (state_machine.run === undefined) {
+            timer.update();
+            return noop;
+        }
+
         return function tick(timestamp) {
             timer.update();
             state_machine.run();
@@ -16,19 +23,6 @@ var Game = (function(Game) {
 
         init: function(state_machine) {
             this.state_machine = state_machine;
-        },
-
-        tick_factory: function() {
-            var a = Game.Time.update,
-                b = this.state_machine,
-                self = this;
-
-            return function tick(timestamp) {
-                a(); b.run();
-                if (self.is_running) {
-                    window.requestAnimationFrame(tick);
-                }
-            };
         },
 
         start: function(fps) {

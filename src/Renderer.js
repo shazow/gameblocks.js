@@ -5,6 +5,8 @@ var Game = (function(Game) {
     var CanvasRenderer = Game.CanvasRenderer = Class({
         container: null,
         layers: [],
+        width: 640,
+        height: 480,
 
         /**
          * @param {Camera} camera       Camera element responsible for drawing the viewport.
@@ -12,8 +14,8 @@ var Game = (function(Game) {
          */
         init: function(camera, num_layers) {
             this.container = camera.element;
-
-            var attrs = {'width': camera.size , 'height': camera.height};
+            this.width = camera.size.width;
+            this.height = camera.size.height;
 
             var i = num_layers || 1;
 
@@ -23,6 +25,12 @@ var Game = (function(Game) {
                 var layer = Dom.create("canvas", styles);
                 this.layers.push(layer.getContext('2d'));
                 this.container.appendChild(layer);
+            }
+        },
+
+        clear: function() {
+            for(var i in this.layers) {
+                this.layers[i].clearRect(0, 0, this.width, this.height);
             }
         }
 
