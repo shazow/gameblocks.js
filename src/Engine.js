@@ -2,15 +2,23 @@ var Game = (function(Game) {
 
     var noop = function() {};
 
-    var AnimationFrameTicker = function(engine, state_machine, timer) {
+    var AnimationFrameTicker = function(engine, state_machine, timer, fps) {
         if (state_machine.run === undefined) {
             timer.update();
             return noop;
         }
+        var min_interval = 0;
+        if (fps !== undefined) {
+            min_interval = 1000 / fps;
+        }
+        var last_tick = 0;
 
         return function tick(timestamp) {
-            timer.update();
-            state_machine.run();
+            if (timestamp - last_tick > min_interval) {
+                last_tick = timestamp;
+                timer.update();
+                state_machine.run();
+            }
             if (engine.is_running) {
                 window.requestAnimationFrame(tick);
             }
@@ -29,7 +37,7 @@ var Game = (function(Game) {
             if(this.is_running) return;
             this.is_running = true;
 
-            var tick = AnimationFrameTicker(this, this.state_machine, Game.Time)
+            var tick = AnimationFrameTicker(this, this.state_machine, Game.Time, fps)
             tick();
         },
 
