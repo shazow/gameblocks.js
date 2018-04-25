@@ -1,0 +1,30 @@
+{
+  "name": "gameblocks",
+  "version": "0.0.0",
+  "devDependencies": {},
+  "scripts": {
+    "lint": "tslint --project ."
+  },
+  "description": "Game engine components",
+  "main": "gameblocks.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shazow/gameblocks.js.git"
+  },
+  "keywords": [
+    "game",
+    "engine",
+    "toolkit"
+  ],
+  "author": "Andrey Petrov",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/shazow/gameblocks.js/issues"
+  },
+  "homepage": "https://github.com/shazow/gameblocks.js#readme"
+}
