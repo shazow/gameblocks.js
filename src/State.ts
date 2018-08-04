@@ -23,7 +23,7 @@ interface State {
 }
 
 interface StateHandler {
-    (state_id:string): void,
+    (state_id:string|null): void,
 }
 
 let NoopState = function(state_id:string): void {}

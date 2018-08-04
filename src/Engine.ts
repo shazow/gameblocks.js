@@ -12,7 +12,7 @@ function AnimationFrameTicker(engine:Engine, state_machine:StateMachine, timer:T
 
     return function tick() {
         timer.update();
-        state_machine.run();
+        state_machine.run(null);
         if (engine.is_running) {
             window.requestAnimationFrame(tick);
         }
