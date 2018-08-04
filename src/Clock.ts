@@ -9,12 +9,12 @@
 // The current time that we update on-demand, for performance reasons.
 let now:number = +new Date();
 
-interface GlobalTime {
+interface TimeFetcher {
     update(): void;
     get(): number;
 }
 
-let Time:GlobalTime = {
+let Time:TimeFetcher = {
     update() {
         now = +new Date();
     },
