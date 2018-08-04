@@ -4,7 +4,7 @@ interface Ticker {
 
 let noop = function() {}
 
-function AnimationFrameTicker(engine:Engine, state_machine:any, timer:TimeFetcher): Ticker {
+function AnimationFrameTicker(engine:Engine, state_machine:StateMachine, timer:TimeFetcher): Ticker {
     if (state_machine.run === undefined) {
         timer.update();
         return noop;
@@ -20,10 +20,10 @@ function AnimationFrameTicker(engine:Engine, state_machine:any, timer:TimeFetche
 };
 
 class Engine {
-    state_machine: any;
+    state_machine: StateMachine;
     is_running: boolean;
 
-    constructor(state_machine:any) {
+    constructor(state_machine:StateMachine) {
         this.state_machine = state_machine;
     }
 
