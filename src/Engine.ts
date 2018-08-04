@@ -31,7 +31,7 @@ class Engine {
         if(this.is_running) return;
         this.is_running = true;
 
-        let tick = AnimationFrameTicker(this, this.state_machine, Game.Time)
+        let tick = AnimationFrameTicker(this, this.state_machine, Time)
         tick();
     }
 
