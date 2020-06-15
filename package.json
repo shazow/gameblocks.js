@@ -1,7 +1,9 @@
 {
   "name": "gameblocks",
   "version": "0.0.0",
-  "devDependencies": {},
+  "devDependencies": {
+    "typescript": "^3.9.5"
+  },
   "scripts": {
     "lint": "tslint --project ."
   },
